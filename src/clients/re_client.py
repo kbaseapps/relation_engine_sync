@@ -6,8 +6,6 @@ import json
 import requests
 
 
-<{alpha 1+ as tag} {any 0+}>{any 0+}</{tag}>
-
 def save(coll_name, docs):
     """Bulk-save documents"""
     (db_url, token) = _api_config()
