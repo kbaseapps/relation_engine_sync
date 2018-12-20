@@ -5,10 +5,11 @@ Pull data from the KBase workspace and upload it into the relation engine graph 
 ## Development
 
 Environment variables (you can place these in `.env` in the root of the repo):
-* `RELATION_ENGINE_API_URL`
-* `RELATION_ENGINE_API_AUTH_TOKEN`
-* `KBASE_WORKSPACE_URL`
-* `KBASE_AUTH_TOKEN`
+* `KBASE_ENDPOINT` (only required if the below 2 are not set)
+* `RELATION_ENGINE_API_URL` (defaults to `<KBASE_ENDPOINT>/relation_engine_api`)
+* `KBASE_WORKSPACE_URL` (defaults to `<KBASE_ENDPOINT>/ws`)
+* `KBASE_AUTH_TOKEN` (required)
+* `RELATION_ENGINE_API_AUTH_TOKEN` (defaults to `KBASE_AUTH_TOKEN`)
 
 To run:
 
