@@ -12,11 +12,8 @@ and these edges:
     - wsprov_similar_to -- ws object similar to another object somehow (eg
         genome homology)
 """
-import pprint
 from clients import workspace_client
 from clients import re_client
-
-pp = pprint.PrettyPrinter()
 
 _action_vert_name = 'wsprov_action'
 _obj_vert_name = 'wsprov_object'
@@ -25,6 +22,7 @@ _input_edge_name = 'wsprov_input_in'
 _similar_edge_name = 'wsprov_similar_to'
 
 # TODO fetch human-readable narrative names for every object
+# Not sure how to do this -- need it for the UI
 
 
 def update_provenance(params):
@@ -50,6 +48,7 @@ def update_provenance(params):
         ws_id = ws[0]  # workspace id
         owner = ws[2]  # username
         # fetch a list of https://kbase.us/services/ws/docs/Workspace.html#typedefWorkspace.object_info
+        print('Running Workspace.list_objects...')
         obj_infos = workspace_client.req('list_objects', {'ids': [ws_id]})
         for obj_info in obj_infos:
             ws_type = obj_info[2]  # type of the object
@@ -70,6 +69,7 @@ def update_provenance(params):
             })
     # Parameters for calling Workspace.get_objects2
     get_obj_params = [{'ref': o['_key'].replace(delimiter, '/')} for o in db_objects]
+    print('Running Workspace.get_objects2...')
     ws_objects = workspace_client.req('get_objects2', {
         'objects': get_obj_params,
         'no_data': '1'
@@ -146,6 +146,7 @@ def update_provenance(params):
                     '_to': 'wsprov_action/' + db_action['_key']
                 })
     # Make calls to the relation engine API to save/update the documents
+    print('Saving all objects to ArangoDB...')
     re_client.save(_obj_vert_name, db_objects)
     re_client.save(_action_vert_name, db_actions)
     re_client.save(_produced_edge_name, db_produced)

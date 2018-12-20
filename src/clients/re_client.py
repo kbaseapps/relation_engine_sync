@@ -36,6 +36,9 @@ def save(coll_name, docs):
 
 
 def _api_config():
+    for required_env in ['KBASE_ENDPOINT', 'KBASE_AUTH_TOKEN']:
+        if required_env not in os.environ:
+            raise RuntimeError('Missing required environment variable: ' + required_env)
     kbase_services_url = os.environ.get('KBASE_ENDPOINT', 'https://ci.kbase.us/services')
     url = kbase_services_url + '/relation_engine_api'
     url = os.environ.get('RELATION_ENGINE_API_URL', url)
