@@ -15,11 +15,10 @@ and these edges:
 from clients import workspace_client
 from clients import re_client
 
-_action_vert_name = 'wsprov_action'
 _obj_vert_name = 'wsprov_object'
-_produced_edge_name = 'wsprov_produced'
-_input_edge_name = 'wsprov_input_in'
-_similar_edge_name = 'wsprov_similar_to'
+_copy_edge_name = 'wsprov_copied_into'
+_link_edge_name = 'wsprov_links'
+_upa_delimiter = ':'
 
 # TODO fetch human-readable narrative names for every object
 # Not sure how to do this -- need it for the UI
@@ -30,18 +29,17 @@ def update_provenance(params):
     For a given user ID:
     - iterate over all their workspaces
     - iterate over all their objects
-    - save object and action vertices
-        (if any edge or object exists already, we skip it)
+    - save object and action vertices and edges
+        (if any edge or vertex exists already, we update it)
     """
     uid = params['uid']
     workspaces = workspace_client.req('list_workspace_info', {'owners': [uid]})
     # Delimiters for workspace refs (can't use '/' in arango) (eg. "1:2:3")
-    delimiter = ':'
-    # Object and data to save in the database
+    _upa_delimiter = ':'
+    # Objects and edges to save in the database
     db_objects = []  # type: ignore
-    db_actions = []  # type: ignore
-    db_produced = []  # type: ignore
-    db_input_in = []  # type: ignore
+    db_copies = []  # type: ignore
+    db_links = []  # type: ignore
     # The result will be a list of:
     #   https://kbase.us/services/ws/docs/Workspace.html#typedefWorkspace.workspace_info
     for ws in workspaces:
@@ -56,7 +54,7 @@ def update_provenance(params):
                 # Ignore Narrative objects
                 continue
             # Workspace address of this object - "1:2:3"
-            obj_addr = delimiter.join([str(ws_id), str(obj_info[0]), str(obj_info[4])])
+            obj_addr = _upa_delimiter.join([str(ws_id), str(obj_info[0]), str(obj_info[4])])
             db_objects.append({
                 '_key': obj_addr,
                 'deleted': False,
@@ -68,7 +66,8 @@ def update_provenance(params):
                 'obj_name': obj_info[1]
             })
     # Parameters for calling Workspace.get_objects2
-    get_obj_params = [{'ref': o['_key'].replace(delimiter, '/')} for o in db_objects]
+    obj_upas = [o['_key'].replace(_upa_delimiter, '/') for o in db_objects]
+    get_obj_params = [{'ref': upa} for upa in obj_upas]
     print('Running Workspace.get_objects2...')
     ws_objects = workspace_client.req('get_objects2', {
         'objects': get_obj_params,
@@ -79,76 +78,65 @@ def update_provenance(params):
         provenance = ws_obj['provenance']
         ws_id = ws_obj['info'][6]  # workspace reference/id
         obj_id = _obj_vert_name + '/' + db_obj['_key']  # object id for arango (eg "wsprov_object/1:2:3")
+        # TODO list referencing objects and references (add links for each)
         # Check if this object was copied (if so, create a copy action)
         if 'copied' in ws_obj and not ws_obj.get('copy_source_inaccessible'):
-            copy_ref = ':'.join(ws_obj['copied'].split('/'))
             # the key will look like "copy-1:2:3-9:8:7" (ie "copy-from-to")
-            key = 'copy-' + copy_ref + '-' + db_obj['_key']
             # Create action vertex with some attributes for the copy data
-            copy_action = {
-                '_key': key,
-                'workspace_id': ws_id,
-                'name': 'copy',
-                'copy_from': copy_ref,
-                'runner': db_obj['owner'] or '',
-                'copy_to': db_obj['_key']
+            copy_ref = ws_obj['copied'].replace('/', _upa_delimiter)
+            from_obj_id = _obj_vert_name + '/' + copy_ref
+            copy_doc = {
+                '_from': from_obj_id,
+                '_to': obj_id,
+                'workspace_id': ws_id
             }
-            db_actions.append(copy_action)
-            # Create input and produced edges from/to the object
-            # Arango id for the action (eg "wsprov_action/key")
-            action_id = _action_vert_name + '/' + copy_action['_key']
-            # Arango id for the object we copied this one from
-            copied_from_id = _obj_vert_name + '/' + copy_ref
-            # source_object -> input_in -> action (copy) -> produced -> this_object
-            db_produced.append({'_from': action_id, '_to': obj_id})
-            db_input_in.append({'_from': copied_from_id, '_to': action_id})
+            db_copies.append(copy_doc)
         # Create action, produced, and input_in documents for any provenance actions
         for prov in provenance:
-            # The provenance array will always just be 1 element. But let's iterate just in case.
-            # An object will only ever be created by 1 action.
-            service = prov.get('service', '')
-            ver = prov.get('service_ver', '')
-            method = prov.get('method', '')
-            if service == 'Workspace' and method == '':
-                # Skip weird workspace provenance actions from old example data
-                # This happens when you add example data in a narrative
-                continue
-            if not service or not service.strip():
-                # We need stuff to have service names at the very least
-                continue
-            # input_ws_objects = prov['input_ws_objects']
-            # Unix timestamp of creation
-            ts = prov.get('epoch', -1)
-            # key is workspace_id:service_name:method_name:service_version:epoch
-            key = delimiter.join([str(ws_id), service, method, ver, str(ts)])
-            db_action = {
-                '_key': key,
-                'name': service + '.' + method,
-                'service': service,
-                'method': method,
-                'version': ver,
-                'timestamp': ts,
-                'workspace_id': ws_id or '',
-                'runner': db_obj['owner'] or ''
+            for input_upa in prov.get('resolved_ws_objects', []):
+                input_key = input_upa.replace('/', _upa_delimiter)
+                link_doc = {
+                    '_from': _obj_vert_name + '/' + input_key,
+                    '_to': obj_id,
+                    'type': 'provenance',
+                    'service': prov.get('service'),
+                    'service_ver': prov.get('service_ver'),
+                    'epoch': prov.get('epoch'),
+                    'ws_id': ws_id,
+                    'method': prov.get('method')
+                }
+                db_links.append(link_doc)
+        for ref_upa in ws_obj.get('refs', []):
+            ref_key = ref_upa.replace('/', _upa_delimiter)
+            link_doc = {
+                '_from': obj_id,
+                '_to': _obj_vert_name + '/' + ref_key,
+                'ws_id': ws_id,
+                'type': 'reference'
             }
-            db_actions.append(db_action)
-            input_ws_objects = prov['resolved_ws_objects']
-            # Create produced edge from action to obj
-            db_produced.append({
-                '_from': 'wsprov_action/' + db_action['_key'],
-                '_to': 'wsprov_object/' + db_obj['_key']
-            })
-            # Create input_in edges from input_ws_objects to action
-            for ref in input_ws_objects:
-                # Create an input_in edge from the ref to the action
-                db_input_in.append({
-                    '_from': 'wsprov_object/' + ref.replace('/', delimiter),
-                    '_to': 'wsprov_action/' + db_action['_key']
-                })
+            db_links.append(link_doc)
+    # Returns a list of lists of object info (obj_id, obj_name, type_string, ...)
+    ref_obj_infos = workspace_client.req('list_referencing_objects', get_obj_params)
+    for (obj_info_list, upa) in zip(ref_obj_infos, obj_upas):
+        if not len(obj_info_list):
+            continue
+        for obj_info in obj_info_list:
+            print(obj_info)
+            ws_id = str(obj_info[6])
+            obj_id = _obj_vert_name + '/' + upa.replace('/', _upa_delimiter)
+            referencer_key = _upa_delimiter.join([ws_id, str(obj_info[0]), str(obj_info[4])])
+            link_doc = {
+                '_from': _obj_vert_name + '/' + referencer_key,
+                '_to': obj_id,
+                'type': 'reference',
+                'ws_id': ws_id
+            }
+            print('link_doc', link_doc)
+            print('-' * 80)
+    # For each object, call Workspace.list_referencing_objects and Workspace.
     # Make calls to the relation engine API to save/update the documents
     print('Saving all objects to ArangoDB...')
     re_client.save(_obj_vert_name, db_objects)
-    re_client.save(_action_vert_name, db_actions)
-    re_client.save(_produced_edge_name, db_produced)
-    re_client.save(_input_edge_name, db_input_in)
+    re_client.save(_copy_edge_name, db_copies)
+    re_client.save(_link_edge_name, db_links)
     return {}

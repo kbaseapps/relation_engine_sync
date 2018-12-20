@@ -18,7 +18,7 @@ def save(coll_name, docs):
     payload = '\n'.join([json.dumps(d) for d in docs])
     print(payload)
     print(len(docs), 'total docs')
-    params = {'collection': coll_name, 'on_duplicate': 'replace'}
+    params = {'collection': coll_name, 'on_duplicate': 'update'}
     print('params are', params)
     resp = requests.put(
         url,
