@@ -9,5 +9,6 @@ class TestMain(unittest.TestCase):
 
     def test_update_provenance(self):
         """Test the echo function."""
-        result = kbase_module.run_method('update_provenance', {'uid': 'jayrbolton'})
+        # for name in _usernames:
+        result = kbase_module.run_method('update_provenance', {'uid': 'kbasedata'})
         print(result)

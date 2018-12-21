@@ -11,26 +11,16 @@ def save(coll_name, docs):
     """Bulk-save documents"""
     (db_url, token) = _api_config()
     url = db_url + '/api/documents'
-    print('authorization token len', len(token))
-    print('db_url is', db_url)
-    print('url is', url)
     # convert the docs into a string, where each obj is separated by a linebreak
     payload = '\n'.join([json.dumps(d) for d in docs])
-    print(payload)
     print(len(docs), 'total docs')
     params = {'collection': coll_name, 'on_duplicate': 'update'}
-    print('params are', params)
     resp = requests.put(
         url,
         data=payload,
         params=params,
         headers={'Authorization': token}
     )
-    print('=' * 80)
-    print('resp', resp)
-    print('text', resp.text)
-    print('status', resp.status_code)
-    print('=' * 80)
     if resp.status_code != 200:
         raise RuntimeError('Error response from relation engine API: %s' % resp.text)
     return resp.json()

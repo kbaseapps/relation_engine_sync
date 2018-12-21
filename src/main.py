@@ -45,6 +45,8 @@ def update_provenance(params):
     for ws in workspaces:
         ws_id = ws[0]  # workspace id
         owner = ws[2]  # username
+        metadata = ws[-1]
+        narr_name = metadata.get('narrative_nice_name', 'Narrative ' + str(ws_id))
         # fetch a list of https://kbase.us/services/ws/docs/Workspace.html#typedefWorkspace.object_info
         print('Running Workspace.list_objects...')
         obj_infos = workspace_client.req('list_objects', {'ids': [ws_id]})
@@ -58,6 +60,7 @@ def update_provenance(params):
             db_objects.append({
                 '_key': obj_addr,
                 'deleted': False,
+                'narr_name': narr_name,
                 'workspace_id': ws_id,
                 'ws_type': obj_info[2],
                 'save_date': obj_info[3],
@@ -65,6 +68,9 @@ def update_provenance(params):
                 'owner': owner,
                 'obj_name': obj_info[1]
             })
+    if not len(db_objects):
+        print('No results for ' + uid)
+        return {}
     # Parameters for calling Workspace.get_objects2
     obj_upas = [o['_key'].replace(_upa_delimiter, '/') for o in db_objects]
     get_obj_params = [{'ref': upa} for upa in obj_upas]
@@ -121,7 +127,6 @@ def update_provenance(params):
         if not len(obj_info_list):
             continue
         for obj_info in obj_info_list:
-            print(obj_info)
             ws_id = str(obj_info[6])
             obj_id = _obj_vert_name + '/' + upa.replace('/', _upa_delimiter)
             referencer_key = _upa_delimiter.join([ws_id, str(obj_info[0]), str(obj_info[4])])
@@ -131,8 +136,6 @@ def update_provenance(params):
                 'type': 'reference',
                 'ws_id': ws_id
             }
-            print('link_doc', link_doc)
-            print('-' * 80)
     # For each object, call Workspace.list_referencing_objects and Workspace.
     # Make calls to the relation engine API to save/update the documents
     print('Saving all objects to ArangoDB...')
