@@ -4,8 +4,11 @@ update_provenance:
     Update the ArangoDB workspace provenance graph from a user ID.
     This will iterate over all workspace and all objects for the user and sync
     data under the `wsprov` arango namespace.
-  required_params: [uid]
   params:
-    uid:
-      title: User ID
-      type: string
+    user_ids:
+      title: User ID / Username
+      type: array
+      items: {type: string}
+    workspace_ids:
+      title: Workspace ID (eg 1234)
+      items: {type: string}
