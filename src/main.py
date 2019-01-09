@@ -24,19 +24,17 @@ _upa_delimiter = ':'
 
 def update_provenance(params):
     """
-    For a given user ID:
-    - iterate over all their workspaces
-    - iterate over all their objects
-    - save object and action vertices and edges
+    For a given set of user IDs and/or workspace IDs
+    - iterate over all the workspaces
+    - iterate over all the objects in each workspace
+    - save object and copy/provenance/reference vertices and edges
         (if any edge or vertex exists already, we update it)
     """
     workspaces = []  # type: list
     if 'user_ids' in params:
-        workspaces = _fetch_workspaces_from_users(params['user_ids'])
-    elif 'workspace_ids' in params:
-        workspaces = _fetch_workspaces(params['workspace_ids'])
-    else:
-        raise RuntimeError("Either 'workspace_ids' or 'user_ids' is required")
+        workspaces.extend(_fetch_workspaces_from_users(params['user_ids']))
+    if 'workspace_ids' in params:
+        workspaces.extend(_fetch_workspaces(params['workspace_ids']))
     for ws in workspaces:
         for objects in _split(_fetch_objects(ws), 1000):
             for obj in objects:
@@ -63,11 +61,7 @@ def _create_db_docs(ws, obj):
     Returns a dictionary where each key is an arango collection name, and each val is a list of docs to save
     """
     # `result` is the returned value. We will be appending documents into these lists
-    result = {
-        _link_edge_name: [],
-        _obj_vert_name: [],
-        _copy_edge_name: []
-    }  # type: dict
+    result = {_link_edge_name: [], _obj_vert_name: [], _copy_edge_name: []}  # type: dict
     ws_id = ws[0]  # eg. "12345"
     owner = ws[2]  # eg. "person123"
     metadata = ws[-1]  # last element is additional workspace metadata

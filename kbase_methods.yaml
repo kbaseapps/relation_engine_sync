@@ -11,4 +11,5 @@ update_provenance:
       items: {type: string}
     workspace_ids:
       title: Workspace ID (eg 1234)
+      type: array
       items: {type: string}
