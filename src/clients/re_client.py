@@ -16,7 +16,7 @@ def save(coll_name, docs):
     url = urljoin(config['relation_engine_url'] + '/', 'api/documents')
     # convert the docs into a string, where each obj is separated by a linebreak
     payload = '\n'.join([json.dumps(d) for d in docs])
-    params = {'collection': coll_name, 'on_duplicate': 'update', 'display_errors': True}
+    params = {'collection': coll_name, 'on_duplicate': 'update'}
     resp = requests.put(
         url,
         data=payload,
