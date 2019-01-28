@@ -9,7 +9,7 @@ class TestMain(unittest.TestCase):
 
     def test_update_provenance(self):
         """Test the update_provenance function."""
-        for i in range(15791, 15793):
+        for i in [19217]:  # [38690, 38699, 38701, 39200, 39253, 39325, 39332, 39595, 39595, 39605, 39686, 39850]:
             ws_id = i
             try:
                 result = kbase_module.run_method('update_provenance', {'workspace_ids': [ws_id]})

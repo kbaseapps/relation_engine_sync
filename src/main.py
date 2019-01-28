@@ -57,10 +57,7 @@ def _import_docs(name, docs):
     """Import array of `docs` into collection `name` on arango."""
     if not docs:
         return
-    # print(f'Importing {len(docs)} {name} docs')
     re_client.save(name, docs)
-    # if results['details']:
-    #     print('Result errors:', results['details'])
 
 
 def _collect(gen, n_items):
@@ -114,7 +111,6 @@ def _create_db_docs(ws, ws_objects):
             result[_copy_edge_name].append(copy_doc)
         # Generate provenance edges
         provenance = obj['provenance']
-        result[_link_edge_name] = []
         # Create object link edges for every provenance action
         for prov in provenance:
             for input_upa in prov.get('resolved_ws_objects', []):
@@ -151,13 +147,16 @@ def _get_upa_from_obj_info(obj_info, delimiter='/'):
     return delimiter.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
 
 
-def _list_objects(ws, min_obj_id=0):
+def _list_objects(ws, min_obj_id=1):
     """
     Generate object info tuples for a given workspace
     Warning: recursive
     """
+    print('Starting with object', min_obj_id)
     ws_id = ws[0]
-    obj_infos = workspace_client.admin_req('listObjects', {'ids': [ws_id]})
+    # obj_infos = workspace_client.admin_req('listObjects', {'ids': [ws_id], 'minObjectID': min_obj_id})
+    obj_infos = workspace_client.req('list_objects', {'ids': [ws_id], 'minObjectID': min_obj_id})
+    print('Result length:', len(obj_infos))
     for info in obj_infos:
         yield info
     # Workspace API returns a max of 10k results. We can fetch the next page using the obj id
@@ -180,18 +179,18 @@ def _fetch_objects(ws):
         get_obj_params = [{'ref': upa} for upa in obj_upas]
         start_time = time.time()
         print('Calling getObjects on {} upas'.format(len(obj_infos)))
-        yield workspace_client.admin_req('getObjects', {'objects': get_obj_params, 'no_data': '1'})['data']
+        # yield workspace_client.admin_req('getObjects', {'objects': get_obj_params, 'no_data': '1'})['data']
+        yield workspace_client.req('get_objects2', {'objects': get_obj_params, 'no_data': '1'})['data']
         print('Total time was {}'.format(time.time() - start_time))
-        # return workspace_client.req('get_objects2', {'objects': get_obj_params, 'no_data': '1'})['data']
 
 
 def _fetch_workspaces(ws_ids):
     """Fetch a workspaces by IDs."""
     workspaces = []  # type: list
     for ws_id in ws_ids:
-        print('ws_id!', ws_id)
-        workspaces.append(workspace_client.admin_req('getWorkspaceInfo', {'id': ws_id}))
-        # workspaces.append(workspace_client.req('get_workspace_info', {'ws_id': ws_id}))
+        print('Workspace', ws_id)
+        # workspaces.append(workspace_client.admin_req('getWorkspaceInfo', {'id': ws_id}))
+        workspaces.append(workspace_client.req('get_workspace_info', {'id': ws_id}))
     return workspaces
 
 
@@ -199,8 +198,8 @@ def _fetch_workspaces_from_users(uids):
     """Fetch workspace info from user IDs/usernames."""
     workspaces = []  # type: list
     for uid in uids:
-        workspaces.extend(workspace_client.admin_req('listWorkspaces', {'owners': [uid]}))
-        # workspaces.extend(workspace_client.req('list_workspace_info', {'owners': [uid]}))
+        # workspaces.extend(workspace_client.admin_req('listWorkspaces', {'owners': [uid]}))
+        workspaces.extend(workspace_client.req('list_workspace_info', {'owners': [uid]}))
     return workspaces
 
 
@@ -212,3 +211,4 @@ def _split(ls, n):
             yield sublist
             sublist = []
         sublist.append(item)
+    yield sublist
