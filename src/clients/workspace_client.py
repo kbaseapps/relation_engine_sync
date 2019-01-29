@@ -25,7 +25,7 @@ def admin_req(method, params):
     payload = {
         'version': '1.1',
         'method': 'Workspace.administer',
-        'params': [{'command': method, 'params': params}]  # , 'user': config['username']}]
+        'params': [{'command': method, 'params': params}]
     }
     return _post_req(payload, config)
 

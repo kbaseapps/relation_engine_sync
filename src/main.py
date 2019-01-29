@@ -15,6 +15,7 @@ and these edges:
 import time
 from clients import workspace_client
 from clients import re_client
+from utils.get_config import get_config
 
 _obj_vert_name = 'wsprov_object'
 _copy_edge_name = 'wsprov_copied_into'
@@ -60,6 +61,16 @@ def import_range(params):
     for ws_id in range(params['start'], params['stop']):
         update_provenance({'workspace_ids': [ws_id]})
     return {'status': 'done'}
+
+
+def show_config(params):
+    """Show public configuration settings."""
+    config = get_config()
+    return {
+        'token_set?': bool(config['token']),
+        'relation_engine_url': config['relation_engine_url'],
+        'workspace_url': config['ws_url']
+    }
 
 
 def _import_docs(name, docs):

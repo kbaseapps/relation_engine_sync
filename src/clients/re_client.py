@@ -21,7 +21,7 @@ def save(coll_name, docs):
         url,
         data=payload,
         params=params,
-        headers={'Authorization': config['relation_engine_token']}
+        headers={'Authorization': config['token']}
     )
     if resp.status_code != 200:
         raise RuntimeError('Error response from relation engine API: %s' % resp.text)

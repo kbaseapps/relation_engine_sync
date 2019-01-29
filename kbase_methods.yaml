@@ -13,6 +13,7 @@ update_provenance:
       title: Workspace ID (eg 1234)
       type: array
       items: {type: integer}
+
 import_range:
   title: Import object data for a range of workspaces
   description: >-
@@ -26,3 +27,6 @@ import_range:
     stop:
       title: Ending workspace ID
       type: integer
+
+show_config:
+  title: Show public configuration settings
