@@ -1,4 +1,4 @@
-# Sync from the workspace to the relation engine
+# Sync from the workspace to the relation engine!
 
 Pull data from the KBase workspace and upload it into the relation engine graph database.
 
