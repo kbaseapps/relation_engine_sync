@@ -1,5 +1,7 @@
 FROM python:3.7-alpine
 
+ARG DEVELOPMENT
+
 # Install pip dependencies
 RUN apk --update add --virtual build-dependencies python-dev build-base && \
     pip install --upgrade --no-cache-dir --extra-index-url https://pypi.anaconda.org/kbase/simple \
