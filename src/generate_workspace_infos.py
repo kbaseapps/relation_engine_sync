@@ -3,7 +3,15 @@ from clients import workspace_client
 
 
 def generate_workspace_infos(start, stop):
-    """Generate wsfull_workspace documents for each workspace."""
+    """
+    Generate wsfull_workspace documents for each workspace.
+    Args:
+        start - workspace id to start importing on
+        stop - workspace id to stop before
+    yields a dict with either a 'result' or 'error' key.
+        'result' will be the wsfull_workspace document data
+        'error' will have 'message' and 'wsid'
+    """
     for wsid in range(start, stop):
         try:
             ws_info = workspace_client.admin_req('getWorkspaceInfo', {'id': wsid})
@@ -26,4 +34,5 @@ def generate_workspace_infos(start, stop):
 
 
 def _timestamp_to_epoch(ts):
+    """Convert a string timestamp into a ms epoch integer."""
     return int(time.mktime(time.strptime(ts, "%Y-%m-%dT%H:%M:%S%z")))
