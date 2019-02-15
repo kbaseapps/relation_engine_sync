@@ -51,7 +51,7 @@ def import_workspaces(params):
         except Exception as err:
             print(err)
             traceback.print_exc()
-            errs.append({'message': err})
+            errs.append({'message': str(err)})
     return {'imported': imported_count, 'errors': errs}
 
 

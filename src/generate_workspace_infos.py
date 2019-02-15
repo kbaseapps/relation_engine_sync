@@ -17,7 +17,7 @@ def generate_workspace_infos(start, stop):
             ws_info = workspace_client.admin_req('getWorkspaceInfo', {'id': wsid})
         except Exception as err:
             print(err)
-            yield {'error': {'message': err, 'wsid': wsid}}
+            yield {'error': {'message': str(err), 'wsid': wsid}}
             continue
         metadata = ws_info[-1]  # last element is additional workspace metadata
         ws_workspace = {
