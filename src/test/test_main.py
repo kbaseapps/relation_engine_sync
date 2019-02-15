@@ -7,6 +7,11 @@ import unittest
 
 class TestMain(unittest.TestCase):
 
+    def test_import_workspace_perms(self):
+        """Test the import_workspace_perms function."""
+        results = kbase_module.run_method('import_workspace_perms', {'start': 1, 'stop': 10})
+        print('results!', results)
+
     def test_import_workspaces(self):
         """Test the import_workspaces function."""
         results = kbase_module.run_method('import_workspaces', {'start': 1, 'stop': 10})

@@ -19,6 +19,7 @@ from clients import re_client
 from utils.get_config import get_config
 
 from generate_workspace_infos import generate_workspace_infos
+from generate_workspace_perms import generate_workspace_perms
 
 _OBJ_VERT_NAME = 'wsprov_object'
 _COPY_EDGE_NAME = 'wsprov_copied_into'
@@ -27,8 +28,6 @@ _COLL_NAMES = [_OBJ_VERT_NAME, _COPY_EDGE_NAME, _LINK_EDGE_NAME]
 # In arango, the upa "1/2/3" is stored as "1:2:3"
 _UPA_DELIMITER = ':'
 
-_WSFULL_VERT_NAME = 'wsfull_workspace'
-
 
 def import_workspaces(params):
     """
@@ -36,8 +35,9 @@ def import_workspaces(params):
     Uses the 'wsfull' namespace.
     Pass in the start and stop for the workspace id range (eg. 1 to 100000)
     """
+    vert_name = 'wsfull_workspace'
     errs = []
-    imported_count = 0
+    # Import workspaces in batches of 1000
     for responses in _split(generate_workspace_infos(params['start'], params['stop']), 1000):
         ws_workspaces = []
         for resp in responses:
@@ -46,13 +46,47 @@ def import_workspaces(params):
             else:
                 ws_workspaces.append(resp['result'])
         try:
-            re_client.save(_WSFULL_VERT_NAME, ws_workspaces)
-            imported_count += 1
+            re_client.save(vert_name, ws_workspaces)
         except Exception as err:
             print(err)
             traceback.print_exc()
             errs.append({'message': str(err)})
-    return {'imported': imported_count, 'errors': errs}
+    return {'errors': errs}
+
+
+def import_workspace_perms(params):
+    """
+    Import user-to-workspace permission data (using wsfull_user and wsfull_ws_perm edges).
+    Pass in the start and stop for the workspace id range (eg. 1 to 100000).
+    """
+    vert_name = 'wsfull_user'
+    edge_name = 'wsfull_ws_perm'
+    errs = []
+    # Import in batches of 1000
+    for responses in _split(generate_workspace_perms(params['start'], params['stop']), 1000):
+        docs = []  # type: list
+        for resp in responses:
+            if 'error' in resp:
+                errs.append(resp['error'])
+            else:
+                docs += resp['result']
+        user_docs = [d['doc'] for d in docs if d['coll'] == vert_name]
+        edge_docs = [d['doc'] for d in docs if d['coll'] == edge_name]
+        # Import the user docs
+        try:
+            re_client.save(vert_name, user_docs)
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            errs.append({'message': str(err)})
+        # Import the permission edges
+        try:
+            resp = re_client.save(edge_name, edge_docs)
+        except Exception as err:
+            print(err)
+            traceback.print_exc()
+            errs.append({'message': str(err)})
+        return {'errors': errs}
 
 
 def update_provenance(params):
