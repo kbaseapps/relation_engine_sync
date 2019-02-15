@@ -25,8 +25,21 @@ import_range:
       title: Starting workspace ID
       type: integer
     stop:
-      title: Ending workspace ID
+      title: Workspace ID to stop before
+      type: integer
+
+import_workspaces:
+  title: Import a range of workspaces from the workspace server
+  description: >-
+    start and stop are workspace ids. Will stop *before* the stop id.
+  required_parasm: [start, stop]
+  params:
+    start:
+      title: Starting workspace ID
+      type: integer
+    stop:
+      title: Workspace ID to stop before
       type: integer
 
 show_config:
-  title: Show public configuration settings
+  title: Show public configuration settings for this dynamic service

@@ -11,6 +11,9 @@ def save(coll_name, docs):
     """
     Bulk-save documents to the relation engine database
     API docs: https://github.com/kbase/relation_engine_api
+    Args:
+        coll_name - collection name
+        docs - list of dicts to save into the collection as json documents
     """
     config = get_config()
     url = urljoin(config['relation_engine_url'] + '/', 'api/documents')

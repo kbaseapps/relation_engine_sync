@@ -7,9 +7,15 @@ import unittest
 
 class TestMain(unittest.TestCase):
 
+    def test_import_workspaces(self):
+        """Test the import_workspaces function."""
+        results = kbase_module.run_method('import_workspaces', {'start': 1, 'stop': 10})
+        print('results!', results)
+
     def test_import_range(self):
         """Test the import_range function."""
-        kbase_module.run_method('import_range', {'start': 1, 'stop': 10})
+        results = kbase_module.run_method('import_range', {'start': 1, 'stop': 2})
+        self.assertEqual(results['status'], 'done')
 
     def test_show_config(self):
         result = kbase_module.run_method('show_config', {})
