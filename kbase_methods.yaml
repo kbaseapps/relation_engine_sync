@@ -1,33 +1,14 @@
-update_provenance:
-  title: Update Provenance
+import_objects:
+  title: Import object data from a list of workspace IDs
   description: >-
-    Update the ArangoDB workspace provenance graph from a user ID.
-    This will iterate over all workspace and all objects for the user and sync
-    data under the `wsprov` arango namespace.
+    Insert objects into RE, along with copy, provenance, and reference edges.
+    Iterates over every provided workspace ID, gets all objects in each
+    workspace, and imports everything using a create-or-replace strategy.
   params:
-    user_ids:
-      title: User ID / Username
-      type: array
-      items: {type: string}
     workspace_ids:
-      title: Workspace ID (eg 1234)
+      title: Workspace IDs
       type: array
       items: {type: integer}
-
-
-import_range:
-  title: Import object data for a range of workspaces
-  description: >-
-    Import provenance, reference, and copy data for workspace objects in a full
-    range of workspace IDs.
-  required_params: [start, stop]
-  params:
-    start:
-      title: Starting workspace ID
-      type: integer
-    stop:
-      title: Workspace ID to stop before
-      type: integer
 
 
 import_workspaces:

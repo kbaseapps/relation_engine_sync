@@ -7,11 +7,7 @@ def generate_workspace_perms(start, stop):
     Args:
         start - workspace id to start importing on
         stop - workspace id to stop before
-    yields a dict with either a 'result' or 'error' key.
-        'result' will be the document data for import
-            'result'.'user' is the wsfull_user doc
-            'result'.'
-        'error' will have 'message' and 'wsid'
+    yields a pair of (result, error), one of which will be None
     """
     user_vert_name = 'wsfull_user'
     ws_vert_name = 'wsfull_workspace'
@@ -21,7 +17,7 @@ def generate_workspace_perms(start, stop):
             perms = workspace_client.admin_req('getPermissionsMass', {'workspaces': [{'id': wsid}]})
         except Exception as err:
             print(err)
-            yield {'error': {'message': str(err)}}
+            yield (None, {'message': str(err)})
             continue
         for (username, perm_code) in perms['perms'][0].items():
             if username == '*':
@@ -34,4 +30,4 @@ def generate_workspace_perms(start, stop):
             user_doc = {'_key': username}
             docs = [{'doc': user_doc, 'coll': user_vert_name},
                     {'doc': edge_doc, 'coll': edge_name}]
-            yield {'result': docs}
+            yield (docs, None)
