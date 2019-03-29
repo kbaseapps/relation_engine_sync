@@ -15,14 +15,25 @@ import_workspaces:
   title: Import a range of workspaces from the workspace server
   description: >-
     start and stop are workspace ids. Will stop *before* the stop id.
-  required_parasm: [start, stop]
+  required_params: [start, stop]
   params:
+    force:
+      title: Force import
+      description: >-
+        If false, workspaces that already exist in arangodb are not imported.
+        If true, all workspaces are re-imported.
+      type: boolean
+      default: false
     start:
       title: Starting workspace ID
       type: integer
     stop:
       title: Workspace ID to stop before
       type: integer
+    show_errors:
+      title: Show full error messages
+      type: boolean
+      default: false
 
 
 import_workspace_perms:

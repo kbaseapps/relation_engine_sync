@@ -1,8 +1,8 @@
 """
 Generate workspace objects along with provenance, copy, and reference edges.
 """
-from clients import workspace_client
-from utils.timestamp_to_epoch import timestamp_to_epoch
+from src.clients import workspace_client
+from src.utils.timestamp_to_epoch import timestamp_to_epoch
 
 _UPA_DELIMITER = ':'
 _METHOD_VERT_NAME = 'wsfull_method_version'

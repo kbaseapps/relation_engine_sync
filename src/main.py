@@ -5,13 +5,13 @@ Update graph data in the Relation Engine based on updates on KBase.
 """
 import traceback
 from collections import defaultdict
-from clients import workspace_client
-from clients import re_client
-from utils.get_config import get_config
+from src.clients import workspace_client
+from src.clients import re_client
+from src.utils.get_config import get_config
 
-from generate_workspace_infos import generate_workspace_infos
-from generate_workspace_perms import generate_workspace_perms
-from generate_workspace_objs import generate_workspace_objs
+from src.generate_workspace_infos import generate_workspace_infos
+from src.generate_workspace_perms import generate_workspace_perms
+from src.generate_workspace_objs import generate_workspace_objs
 
 # In arango, the upa "1/2/3" is stored as "1:2:3"
 
@@ -20,29 +20,34 @@ def import_workspaces(params):
     """
     Import workspace infos into wsfull_workspace.
     Uses the 'wsfull' namespace.
-    Pass in the start and stop for the workspace id range (eg. 1 to 100000)
+    Params:
+        start - workspace id to start with
+        stop - workspace id to stop before
+        force - whether to force re-import if the workspace already exists in arango
     """
     vert_name = 'wsfull_workspace'
     errs = []
-    import_count = 0
+    created_count = 0
+    updated_count = 0
     # Import workspaces in batches of 1000
-    for responses in _split(generate_workspace_infos(params['start'], params['stop']), 1000):
+    for responses in _split(generate_workspace_infos(params['start'], params['stop'], params.get('force')), 1000):
         # `responses` is a pair of (result, err), one of which will be None
         ws_workspaces = []
         for (result, err) in responses:
             if err:
-                errs.append(err)
+                errs.append(str(err)[:200])
             else:
                 ws_workspaces.append(result)
         try:
             resp = re_client.save(vert_name, ws_workspaces)
-            import_count += resp['updated']
-            import_count += resp['created']
+            updated_count += resp['updated']
+            created_count += resp['created']
         except Exception as err:
-            print(err)
-            traceback.print_exc()
             errs.append(str(err)[:200])
-    return {'errors': errs, 'import_count': import_count}
+    result = {'updated_count': updated_count, 'created_count': created_count, 'error_count': len(errs)}
+    if params.get('show_errors'):
+        result['errors'] = errs
+    return result
 
 
 def import_workspace_perms(params):
@@ -152,14 +157,6 @@ def _import_docs_groups(import_data, min_size):
         except Exception as err:
             errs.append(str(err)[:200])
     return (imported_count, errs)
-
-
-def _get_upa_from_obj_info(obj_info, delimiter='/'):
-    """
-    Get the upa, such as "1/2/3", from an obj_info tuple.
-    https://kbase.us/services/ws/docs/Workspace.html#typedefWorkspace.object_info
-    """
-    return delimiter.join([str(obj_info[6]), str(obj_info[0]), str(obj_info[4])])
 
 
 def _fetch_workspaces(ws_ids):
