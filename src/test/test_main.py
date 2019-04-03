@@ -10,7 +10,14 @@ import unittest
 
 class TestMain(unittest.TestCase):
 
-    @unittest.skip('x')
+    def test_import_wsprov(self):
+        results = kbase_module.run_method('import_wsprov', {
+            'workspace_id': 15792,
+            'min_object_id': 1,
+            'max_object_id': 10
+        })
+        print('results', results)
+
     def test_import_workspace_perms(self):
         """Test the import_workspace_perms function."""
         results = kbase_module.run_method('import_workspace_perms', {'start': 1, 'stop': 10})
@@ -18,7 +25,6 @@ class TestMain(unittest.TestCase):
         self.assertEqual(results['edge_import_count'], 14)
         self.assertEqual(results['vertex_import_count'], results['edge_import_count'])
 
-    @unittest.skip('x')
     def test_import_workspaces(self):
         """Test the import_workspaces function."""
         results = kbase_module.run_method('import_workspaces', {'start': 1, 'stop': 10})
@@ -31,7 +37,6 @@ class TestMain(unittest.TestCase):
         # TODO better test of results here
         # self.assertEqual(results['status'], 'done')
 
-    @unittest.skip('x')
     def test_show_config(self):
         result = kbase_module.run_method('show_config', {})
         self.assertEqual(result['token_set?'], True)

@@ -15,13 +15,26 @@ import_workspaces:
   title: Import a range of workspaces from the workspace server
   description: >-
     start and stop are workspace ids. Will stop *before* the stop id.
-  required_parasm: [start, stop]
+  required_params: [start, stop]
   params:
     start:
       title: Starting workspace ID
       type: integer
     stop:
       title: Workspace ID to stop before
+      type: integer
+
+
+import_wsprov:
+  title: Import into the wsprov* namespace on Arango given a workspace id
+  required_params: [workspace_id]
+  params:
+    workspace_id:
+      title: Workspace ID to import
+      type: integer
+    min_object_id:
+      title: Minimum object ID
+      description: Object ID to start importing on in the workspace
       type: integer
 
 

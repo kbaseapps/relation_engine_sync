@@ -2,9 +2,11 @@
 Relation Engine API client
 """
 import json
+import os
 import requests
-from utils.get_config import get_config
 from urllib.parse import urljoin
+
+from src.utils.get_config import get_config
 
 
 def save(coll_name, docs):
@@ -26,6 +28,25 @@ def save(coll_name, docs):
         params=params,
         headers={'Authorization': config['token']}
     )
-    if resp.status_code != 200:
-        raise RuntimeError('Error response from relation engine API: %s' % resp.text)
+    if not resp.ok:
+        raise RuntimeError(f'Error response from RE API: {resp.text}')
     return resp.json()
+
+
+def import_file(file_path, fd):
+    """
+    Import a file full of json documents, separated by linebreaks.
+    """
+    config = get_config()
+    url = urljoin(config['relation_engine_url'] + '/', 'api/documents')
+    # convert the docs into a string, where each obj is separated by a linebreak
+    coll_name = os.path.basename(file_path).split('.')[0]
+    params = {'collection': coll_name, 'on_duplicate': 'update'}
+    resp = requests.put(
+        url,
+        data=fd,
+        params=params,
+        headers={'Authorization': config['token']}
+    )
+    if not resp.ok:
+        raise RuntimeError(f'Error response from RE API: {resp.text}')

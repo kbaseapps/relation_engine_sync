@@ -3,17 +3,47 @@ This file contains all the methods for this KBase SDK module.
 
 Update graph data in the Relation Engine based on updates on KBase.
 """
+import os
 import traceback
+import tempfile
+import shutil
 from collections import defaultdict
-from clients import workspace_client
-from clients import re_client
-from utils.get_config import get_config
 
-from generate_workspace_infos import generate_workspace_infos
-from generate_workspace_perms import generate_workspace_perms
-from generate_workspace_objs import generate_workspace_objs
+from src.clients import workspace_client
+from src.clients import re_client
+from src.utils.get_config import get_config
+from src.generate_workspace_infos import generate_workspace_infos
+from src.generate_workspace_perms import generate_workspace_perms
+from src.generate_workspace_objs import generate_workspace_objs
+from src.generate_wsprov_data import generate_wsprov_data
 
 # In arango, the upa "1/2/3" is stored as "1:2:3"
+
+
+def import_wsprov(params):
+    """
+    Import into the wsprov* namespace given a workspace ID
+    """
+    tmp_dir = tempfile.mkdtemp()
+    files = {
+        'wsprov_object': open(os.path.join(tmp_dir, 'wsprov_object.json'), 'a'),
+        'wsprov_copied_into': open(os.path.join(tmp_dir, 'wsprov_copied_into.json'), 'a'),
+        'wsprov_links': open(os.path.join(tmp_dir, 'wsprov_links.json'), 'a')
+    }
+    wsid = params['workspace_id']
+    min_obj_id = params.get('min_object_id', 1)
+    max_obj_id = params.get('max_object_id', min_obj_id + 1000)
+    print(f'Importing WS {wsid} starting with object {min_obj_id}')
+    try:
+        generate_wsprov_data(wsid, min_obj_id, max_obj_id, files)
+        for key, fd in files.items():
+            print(f'Importing records from {fd.name}')
+            with open(fd.name, 'rb') as fdr:
+                re_client.import_file(fd.name, fdr)
+            fd.close()
+    finally:
+        shutil.rmtree(tmp_dir)
+    return {}
 
 
 def import_workspaces(params):
