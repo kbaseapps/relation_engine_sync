@@ -1,4 +1,5 @@
 """
+<<<<<<< HEAD
 This is the entrypoint for running the app. A parent supervisor process that
 launches and monitors child processes and threads.
 """
