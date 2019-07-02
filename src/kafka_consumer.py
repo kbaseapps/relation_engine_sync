@@ -10,19 +10,16 @@ _CONFIG = get_config()
 
 def run():
     """Run the main event loop, ie. the Kafka Consumer, dispatching to self._handle_message."""
-    print('hello?!?!?!?!?')
     topics = [
         _CONFIG['kafka_topics']['workspace_events'],
         _CONFIG['kafka_topics']['re_admin_events']
     ]
-    print('2')
     consumer = Consumer({
         'bootstrap.servers': _CONFIG['kafka_server'],
         'group.id': _CONFIG['kafka_clientgroup'],
         'auto.offset.reset': 'earliest',
         'enable.auto.commit': True
     })
-    print('3')
     print(f"Subscribing to: {topics}")
     print(f"Client group: {_CONFIG['kafka_clientgroup']}")
     print(f"Kafka server: {_CONFIG['kafka_server']}")

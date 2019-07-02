@@ -15,11 +15,7 @@ def main():
     """
     Starts all subprocesses with healthchecks
     """
-    print('kafka_consumer.run', kafka_consumer.run)
-    print("running...")
-    print("done running...???")
     consumers = WorkerGroup(target=kafka_consumer.run, args=(), count=_CONFIG['num_consumers'])  # type: ignore
-    print('consumers', consumers)
     while True:
         # Monitor processes/threads and restart any that have crashed
         consumers.health_check()
