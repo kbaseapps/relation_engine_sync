@@ -1,0 +1,4 @@
+--extra-index-url https://pypi.anaconda.org/kbase/simple
+kbase-workspace-utils==0.0.11
+confluent-kafka==0.11.6
+requests==2.21.0

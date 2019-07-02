@@ -3,8 +3,8 @@ Relation Engine API client
 """
 import json
 import requests
-from utils.get_config import get_config
 from urllib.parse import urljoin
+from src.utils.get_config import get_config
 
 
 def save(coll_name, docs):

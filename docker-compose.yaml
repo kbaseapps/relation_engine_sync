@@ -1,0 +1,57 @@
+version: '3'
+
+# This docker-compose is for developer convenience, not for running in production.
+
+services:
+
+  # Python
+  app:
+    build:
+      context: .
+      args:
+        DEVELOPMENT: 1
+    depends_on:
+      - kafka
+      - workspace
+    ports:
+      - 5000:5000
+    volumes:
+      - ${PWD}:/kb/module
+    environment:
+      - DEVELOPMENT=1
+      - PYTHONUNBUFFERED=true
+      - KBASE_WORKSPACE_URL=http://workspace:5000
+      - WORKSPACE_TOKEN=valid_admin_token
+      - KBASE_SECURE_CONFIG_PARAM_WS_TOKEN=valid_admin_token
+
+  kafka:
+    image: confluentinc/cp-kafka:5.0.0
+    hostname: kafka
+    ports:
+      - 9092:9092
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: -Xmx512m -Xms512m
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper:12888:13888
+
+  # Mock workspace server (see src/test/mock_workspace/endpoints.json)
+  workspace:
+    image: mockservices/mock_json_service:1.1
+    volumes:
+      - ${PWD}/src/test/mock_workspace:/config

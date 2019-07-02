@@ -3,7 +3,7 @@ Make API requests to the kbase workspace JSON RPC server.
 """
 import json
 import requests
-from utils.get_config import get_config
+from src.utils.get_config import get_config
 
 
 def req(method, params):

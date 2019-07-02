@@ -1,4 +1,4 @@
-from clients import workspace_client
+from src.clients import workspace_client
 
 
 def generate_workspace_perms(start, stop):
