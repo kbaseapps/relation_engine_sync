@@ -13,15 +13,15 @@ def get_config():
         if not os.environ.get(var, '').strip():  # None, blank, or missing
             raise RuntimeError("Missing required env var: " + var)
     # Get the url of the relation engine API
-    re_url = os.environ.get(_ENV_PREFIX + 'RE_URL', 'relation_engine_api')
+    re_url = os.environ.get(_ENV_PREFIX + 'RE_URL', 'http://re_api:5000').strip('/')
     # Get the URL of the workspace API
-    ws_url = os.environ.get(_ENV_PREFIX + 'WORKSPACE_URL', 'https://ci.kbase.us/services/ws')
+    ws_url = os.environ.get(_ENV_PREFIX + 'WORKSPACE_URL', 'http://workspace:5000').strip('/')
     # Get the authentication token for making requests to the workspace and relation engine
     ws_token = os.environ[_ENV_PREFIX + 'WS_TOKEN']
     return {
         'ws_url': ws_url,
-        'relation_engine_url': re_url,
-        'token': ws_token,
+        're_api_url': re_url,
+        'ws_token': ws_token,
         'num_consumers': os.environ.get('NUM_CONSUMERS', 8),
         'kafka_server': os.environ.get('KAFKA_SERVER', 'kafka'),
         'kafka_clientgroup': os.environ.get('KAFKA_CLIENTGROUP', 're_sync'),

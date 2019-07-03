@@ -5,6 +5,8 @@ import json
 import traceback
 from confluent_kafka import Consumer, KafkaError
 from .utils.config import get_config
+from .download_obj import download_obj
+from .import_object import import_object
 
 _CONFIG = get_config()
 
@@ -39,9 +41,13 @@ def run():
         try:
             msg = json.loads(val)
             _handle_msg(msg)
-        except ValueError as err:
-            print(f'JSON parsing error: {err}')
-            print(f'Message content: {val}')
+        except Exception as err:
+            print('=' * 80)
+            print(f"Error indexing:\n{type(err)} - {err}")
+            print(msg)
+            print(err)
+            traceback.print_exc()
+            print('=' * 80)
     consumer.close()
 
 
@@ -50,32 +56,27 @@ def _handle_msg(msg):
     event_type = msg.get('evtype')
     wsid = msg.get('wsid')
     if not wsid:
-        print(f'Invalid wsid in event: {wsid}')
-        return
+        raise RuntimeError(f'Invalid wsid in event: {wsid}')
     if not event_type:
-        print(f"Missing 'evtype' in event: {msg}")
-        return
+        raise RuntimeError(f"Missing 'evtype' in event: {msg}")
     print(f'Received {msg["evtype"]} for {wsid}/{msg.get("objid", "?")}')
-    try:
-        if event_type in ['IMPORT', 'NEW_VERSION', 'COPY_OBJECT', 'RENAME_OBJECT']:
-            print('run importer')
-        elif event_type == 'IMPORT_NONEXISTENT':
-            print('run importer if nonexistent')
-        elif event_type == 'OBJECT_DELETE_STATE_CHANGE':
-            print('delete obj')
-        elif event_type == 'WORKSPACE_DELETE_STATE_CHANGE':
-            print('delete obj for all in workspace')
-        elif event_type in ['CLONE_WORKSPACE', 'IMPORT_WORKSPACE']:
-            print('import whole workspace')
-        elif event_type == 'SET_GLOBAL_PERMISSION':
-            print('set global permission for a workspace')
-        else:
-            print(f"Unrecognized event {event_type}.")
-            return
-    except Exception as err:
-        print('=' * 80)
-        print(f"Error indexing:\n{type(err)} - {err}")
-        print(msg)
-        print(err)
-        traceback.print_exc()
-        print('=' * 80)
+    if event_type in ['IMPORT', 'NEW_VERSION', 'COPY_OBJECT', 'RENAME_OBJECT']:
+        _import_obj(msg)
+    elif event_type == 'IMPORT_NONEXISTENT':
+        print('run importer if nonexistent')
+    elif event_type == 'OBJECT_DELETE_STATE_CHANGE':
+        print('delete obj')
+    elif event_type == 'WORKSPACE_DELETE_STATE_CHANGE':
+        print('delete obj for all in workspace')
+    elif event_type in ['CLONE_WORKSPACE', 'IMPORT_WORKSPACE']:
+        print('import whole workspace')
+    elif event_type == 'SET_GLOBAL_PERMISSION':
+        print('set global permission for a workspace')
+    else:
+        raise RuntimeError(f"Unrecognized event {event_type}.")
+
+
+def _import_obj(msg):
+    print('Downloading obj')
+    obj_info = download_obj(msg['wsid'], msg['objid'], msg.get('ver'))
+    import_object(obj_info)

@@ -1,20 +1,31 @@
 import unittest
 import json
 import time
+import requests
 from confluent_kafka import Producer
 from src.utils.config import get_config
-
-print("module level test_integration")
 
 _CONFIG = get_config()
 
 
 class TestIntegration(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        print('token', _CONFIG['ws_token'])
+        # Initialize specs
+        resp = requests.put(
+            _CONFIG['re_api_url'] + '/api/v1/specs',
+            headers={'Authorization': _CONFIG['ws_token']},
+            params={'init_collections': '1'}
+        )
+        print('xxx', resp.text)
+        resp.raise_for_status()
+
     def test_basic(self):
         print("test_basic")
-        _produce({'evtype': 'NEW_VERSION', 'wsid': 1, 'objid': 1})
-        time.sleep(10)
+        _produce({'evtype': 'NEW_VERSION', 'wsid': 43062, 'objid': 2, 'ver': 1})
+        time.sleep(30)
         self.assertEqual(1, 2)
 
 

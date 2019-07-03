@@ -1,3 +1,4 @@
+.PHONY: test
 
 test:
 	docker-compose down

@@ -10,5 +10,4 @@ RUN chmod -R a+rw /kb/module
 WORKDIR /kb/module
 RUN pip install --upgrade --no-cache-dir pip -r requirements.txt && \
     if [ "$DEVELOPMENT" ]; then pip install --no-cache-dir -r dev-requirements.txt; fi
-EXPOSE 5000
 ENTRYPOINT ["sh", "/kb/module/scripts/entrypoint.sh"]

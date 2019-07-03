@@ -11,18 +11,17 @@ services:
       args:
         DEVELOPMENT: 1
     depends_on:
+      - re_api
       - kafka
       - workspace
-    ports:
-      - 5000:5000
     volumes:
       - ${PWD}:/kb/module
     environment:
       - DEVELOPMENT=1
       - PYTHONUNBUFFERED=true
-      - KBASE_WORKSPACE_URL=http://workspace:5000
       - WORKSPACE_TOKEN=valid_admin_token
-      - KBASE_SECURE_CONFIG_PARAM_WS_TOKEN=valid_admin_token
+      - KBASE_SECURE_CONFIG_PARAM_WS_TOKEN=GIJLFHAVDMXPAD4VKROUA36HYWSK26GP
+      - KBASE_SECURE_CONFIG_PARAM_WORKSPACE_URL=https://ci.kbase.us/services/ws
 
   kafka:
     image: confluentinc/cp-kafka:5.0.0
@@ -50,8 +49,44 @@ services:
       ZOOKEEPER_SYNC_LIMIT: 2
       ZOOKEEPER_SERVERS: zookeeper:12888:13888
 
+  # Relation Engine API
+  re_api:
+    image: kbase/relation_engine_api:latest
+    ports:
+      - 5000:5000
+    depends_on:
+      - auth
+      - workspace
+      - arangodb
+    environment:
+      - WORKERS=1
+      - DEVELOPMENT=1
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - KBASE_AUTH_URL=http://ci.kbase.us/services/auth
+      - KBASE_WORKSPACE_URL=http://workspace:5000
+      - PYTHONUNBUFFERED=true
+      - SPEC_RELEASE_PATH=/app/src/test/spec_release/spec.tar.gz
+      - DB_URL=http://arangodb:8529
+      - DB_USER=root
+      - ARANGO_ROOT_PASSWORD=password
+
   # Mock workspace server (see src/test/mock_workspace/endpoints.json)
   workspace:
     image: mockservices/mock_json_service:1.1
     volumes:
       - ${PWD}/src/test/mock_workspace:/config
+
+  # A mock kbase auth server (see src/test/mock_auth/endpoints.json)
+  auth:
+    image: mockservices/mock_json_service
+    volumes:
+      - ${PWD}/test/mock_services/mock_auth:/config
+
+  # Arangodb server in cluster mode
+  arangodb:
+    image: arangodb:3.4
+    ports:
+      - 8529:8529
+    command: sh -c "arangodb create jwt-secret --secret=jwtSecret &&
+                    arangodb --starter.local --auth.jwt-secret=./jwtSecret"
