@@ -25,5 +25,4 @@ def import_object(obj_info):
         'object_id': objid,
         'deleted': False
     }])
-    # TODO fetch the doc on RE, blocking for it with timeout
     print('xyz saved.')

@@ -10,17 +10,19 @@ services:
       context: .
       args:
         DEVELOPMENT: 1
+    network_mode: host
     depends_on:
-      - re_api
       - kafka
-      - workspace
+      - re_api
+      # - workspace
     volumes:
       - ${PWD}:/kb/module
     environment:
       - DEVELOPMENT=1
       - PYTHONUNBUFFERED=true
-      - WORKSPACE_TOKEN=valid_admin_token
-      - KBASE_SECURE_CONFIG_PARAM_WS_TOKEN=GIJLFHAVDMXPAD4VKROUA36HYWSK26GP
+      - KBASE_SECURE_CONFIG_PARAM_RE_URL=http://localhost:5000
+      - KBASE_SECURE_CONFIG_PARAM_WS_TOKEN=xyz
+      - KBASE_SECURE_CONFIG_PARAM_RE_TOKEN=xyz
       - KBASE_SECURE_CONFIG_PARAM_WORKSPACE_URL=https://ci.kbase.us/services/ws
 
   kafka:
@@ -52,24 +54,23 @@ services:
   # Relation Engine API
   re_api:
     image: kbase/relation_engine_api:latest
+    depends_on:
+      - arangodb
+      # - auth
+      # - workspace
     ports:
       - 5000:5000
-    depends_on:
-      - auth
-      - workspace
-      - arangodb
     environment:
-      - WORKERS=1
+      - WORKERS=2
       - DEVELOPMENT=1
       - FLASK_ENV=development
       - FLASK_DEBUG=1
-      - KBASE_AUTH_URL=http://ci.kbase.us/services/auth
-      - KBASE_WORKSPACE_URL=http://workspace:5000
+      - KBASE_AUTH_URL=https://ci.kbase.us/services/auth
+      - KBASE_WORKSPACE_URL=https://ci.kbase.us/services/ws
       - PYTHONUNBUFFERED=true
       - SPEC_RELEASE_PATH=/app/src/test/spec_release/spec.tar.gz
       - DB_URL=http://arangodb:8529
       - DB_USER=root
-      - ARANGO_ROOT_PASSWORD=password
 
   # Mock workspace server (see src/test/mock_workspace/endpoints.json)
   workspace:

@@ -4,9 +4,10 @@ Consume workspace update events from kafka.
 import json
 import traceback
 from confluent_kafka import Consumer, KafkaError
-from .utils.config import get_config
-from .download_obj import download_obj
-from .import_object import import_object
+
+from src.utils.config import get_config
+from src.utils.workspace_client import download_info
+from src.import_object import import_object
 
 _CONFIG = get_config()
 
@@ -63,7 +64,7 @@ def _handle_msg(msg):
     if event_type in ['IMPORT', 'NEW_VERSION', 'COPY_OBJECT', 'RENAME_OBJECT']:
         _import_obj(msg)
     elif event_type == 'IMPORT_NONEXISTENT':
-        print('run importer if nonexistent')
+        _import_nonexistent(msg)
     elif event_type == 'OBJECT_DELETE_STATE_CHANGE':
         print('delete obj')
     elif event_type == 'WORKSPACE_DELETE_STATE_CHANGE':
@@ -78,5 +79,13 @@ def _handle_msg(msg):
 
 def _import_obj(msg):
     print('Downloading obj')
-    obj_info = download_obj(msg['wsid'], msg['objid'], msg.get('ver'))
+    obj_info = download_info(msg['wsid'], msg['objid'], msg.get('ver'))
     import_object(obj_info)
+
+
+def _import_nonexistent(msg):
+    print('_import_nonexistent TODO')
+    # upa = '/'.join([str(p) for p in [msg['wsid'], msg['objid'], msg['ver']]])
+    # exists = check_doc_existence(upa)
+    # if not exists:
+    #     _import_obj(msg)

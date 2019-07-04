@@ -22,6 +22,7 @@ def get_config():
         'ws_url': ws_url,
         're_api_url': re_url,
         'ws_token': ws_token,
+        're_token': os.environ[_ENV_PREFIX + 'RE_TOKEN'],
         'num_consumers': os.environ.get('NUM_CONSUMERS', 8),
         'kafka_server': os.environ.get('KAFKA_SERVER', 'kafka'),
         'kafka_clientgroup': os.environ.get('KAFKA_CLIENTGROUP', 're_sync'),

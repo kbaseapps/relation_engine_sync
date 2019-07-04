@@ -11,6 +11,21 @@ from .config import get_config
 _CONFIG = get_config()
 
 
+def get_doc(coll, key):
+    """Fetch a doc in a collection by key."""
+    resp = requests.post(
+        _CONFIG['re_api_url'] + '/api/v1/query_results',
+        data=json.dumps({
+            'query': "for v in @@coll filter v._key == @key limit 1 return v",
+            'coll': coll,
+            'key': key
+        }),
+        headers={'Authorization': _CONFIG['re_token']}
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
 def save(coll_name, docs):
     """
     Bulk-save documents to the relation engine database
