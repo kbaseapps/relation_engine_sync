@@ -14,15 +14,15 @@ def import_object(obj_info):
     """
     Given a workspace object downloaded to disk, convert it to a wsfull arangodb document and import it.
     """
-    print("obj_info", obj_info)
     info_tup = obj_info['info']
     wsid = info_tup[6]
     objid = info_tup[0]
-    print('xyz saving..')
+    key = f'{wsid}:{objid}'
+    print('Saving wsfull_object with key', key)
     save('wsfull_object', [{
-        '_key': f'{wsid}:{objid}',
+        '_key': key,
         'workspace_id': wsid,
         'object_id': objid,
         'deleted': False
     }])
-    print('xyz saved.')
+    print('Successfully saved', key)

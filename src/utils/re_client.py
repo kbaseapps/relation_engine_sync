@@ -16,13 +16,14 @@ def get_doc(coll, key):
     resp = requests.post(
         _CONFIG['re_api_url'] + '/api/v1/query_results',
         data=json.dumps({
-            'query': "for v in @@coll filter v._key == @key limit 1 return v",
-            'coll': coll,
+            'query': "let ws_ids = @ws_ids for v in @@coll filter v._key == @key limit 1 return v",
+            '@coll': coll,
             'key': key
         }),
         headers={'Authorization': _CONFIG['re_token']}
     )
-    resp.raise_for_status()
+    if not resp.ok:
+        raise RuntimeError(resp.text)
     return resp.json()
 
 

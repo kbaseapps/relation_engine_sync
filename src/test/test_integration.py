@@ -15,24 +15,22 @@ class TestIntegration(unittest.TestCase):
     def setUpClass(cls):
         print('token', _CONFIG['ws_token'])
         # Initialize specs
-        print('xyzabc')
-        print(_CONFIG['re_api_url'])
-        print(_CONFIG['ws_token'])
-        print('xyzabc')
+        print('Initializing specs for the RE API..')
         resp = requests.put(
             _CONFIG['re_api_url'] + '/api/v1/specs',
             headers={'Authorization': _CONFIG['ws_token']},
             params={'init_collections': '1'}
         )
-        print('xxx', resp.text)
         resp.raise_for_status()
+        print('Done initializing RE specs.')
 
     def test_basic(self):
-        print("test_basic")
-        _produce({'evtype': 'NEW_VERSION', 'wsid': 43062, 'objid': 2, 'ver': 1})
+        _produce({'evtype': 'NEW_VERSION', 'wsid': 41347, 'objid': 5, 'ver': 1})
         time.sleep(30)
-        _wait_for_doc('wsfull_object', '43062:2')
-        self.assertEqual(1, 2)
+        doc = _wait_for_doc('wsfull_object', '41347:5')
+        self.assertEqual(doc['workspace_id'], 41347)
+        self.assertEqual(doc['object_id'], 5)
+        self.assertEqual(doc['deleted'], False)
 
 
 def _delivery_report(err, msg):
@@ -49,10 +47,14 @@ def _produce(data, topic=_CONFIG['kafka_topics']['workspace_events']):
 
 
 def _wait_for_doc(coll, key):
-    # timeout = int(time.time()) + 60
-    results = get_doc(coll, key)
-    print("results", results)
-
-
-def _get_doc(key):
-    """Fetch a doc on RE, blocking for it until timeout."""
+    """Fetch a doc with the RE API, waiting for it to become available with a 30s timeout."""
+    timeout = int(time.time()) + 30
+    while True:
+        results = get_doc(coll, key)
+        if results['count'] > 0:
+            break
+        else:
+            if int(time.time()) > timeout:
+                raise RuntimeError('Timed out trying to fetch', key)
+            time.sleep(3)
+    return results['results'][0]
