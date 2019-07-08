@@ -25,6 +25,9 @@ class TestIntegration(unittest.TestCase):
         print('Done initializing RE specs.')
 
     def test_basic(self):
+        """
+        Test a full successful object import into arango, checking for all associated documents.
+        """
         _produce({'evtype': 'NEW_VERSION', 'wsid': 41347, 'objid': 5, 'ver': 1})
         time.sleep(30)
         # Check for wsfull_object
@@ -47,8 +50,39 @@ class TestIntegration(unittest.TestCase):
         self.assertEqual(ver_doc['epoch'], 1554408999000)
         self.assertEqual(ver_doc['deleted'], False)
         # Check for wsfull_copied_from
-        ver_doc = _wait_for_edge('wsfull_copied_from', 'wsfull_object_version/41347:5:1', 'wsfull_object_version/1:2:3')
-        self.assertTrue(ver_doc)
+        copy_edge = _wait_for_edge(
+            'wsfull_copied_from',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_object_version/1:2:3'  # to
+        )
+        self.assertTrue(copy_edge)
+        # Check for wsfull_version_of
+        ver_edge = _wait_for_edge(
+            'wsfull_version_of',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_object/41347:5'  # to
+        )
+        self.assertTrue(ver_edge)
+        # Check for wsfull_ws_contains_obj
+        contains_edge = _wait_for_edge(
+            'wsfull_ws_contains_obj',  # collection
+            'wsfull_workspace/41347',  # from
+            'wsfull_object/41347:5'  # to
+        )
+        self.assertTrue(contains_edge)
+        # Check for wsfull_obj_created_with_method edge
+        created_with_edge = _wait_for_edge(
+            'wsfull_obj_created_with_method',  # collection
+            'wsfull_object_version/41347:5:1',
+            'wsfull_method_version/narrative:3.10.0:UNKNOWN'
+        )
+        self.assertEqual(created_with_edge['method_params'], {})
+
+
+def _produce(data, topic=_CONFIG['kafka_topics']['workspace_events']):
+    producer = Producer({'bootstrap.servers': _CONFIG['kafka_server']})
+    producer.produce(topic, json.dumps(data), callback=_delivery_report)
+    producer.poll(60)
 
 
 def _delivery_report(err, msg):
@@ -58,14 +92,8 @@ def _delivery_report(err, msg):
         print('Message delivered to', msg.topic())
 
 
-def _produce(data, topic=_CONFIG['kafka_topics']['workspace_events']):
-    producer = Producer({'bootstrap.servers': _CONFIG['kafka_server']})
-    producer.produce(topic, json.dumps(data), callback=_delivery_report)
-    producer.poll(60)
-
-
 def _wait_for_edge(coll, from_key, to_key):
-    """Fetch an edge with the RE API, waiting for it to become available."""
+    """Fetch an edge with the RE API, waiting for it to become available with 30s timeout."""
     timeout = int(time.time()) + 30
     while True:
         results = get_edge(coll, from_key, to_key)
@@ -74,7 +102,7 @@ def _wait_for_edge(coll, from_key, to_key):
         else:
             if int(time.time()) > timeout:
                 raise RuntimeError('Timed out trying to fetch', from_key, to_key)
-            time.sleep(3)
+            time.sleep(1)
     return results['results'][0]
 
 
@@ -88,5 +116,5 @@ def _wait_for_doc(coll, key):
         else:
             if int(time.time()) > timeout:
                 raise RuntimeError('Timed out trying to fetch', key)
-            time.sleep(3)
+            time.sleep(1)
     return results['results'][0]

@@ -36,7 +36,6 @@ def get_edge(coll, from_key, to_key):
         limit 1
         return v
     """
-    print('query', f"let ws_ids = @ws_ids for v in @@coll filter v._from == {from_key} AND v._to == {to_key} limit 1 return v")  # noqa
     resp = requests.post(
         _CONFIG['re_api_url'] + '/api/v1/query_results',
         data=json.dumps({
@@ -64,7 +63,6 @@ def save(coll_name, docs):
     # convert the docs into a string, where each obj is separated by a linebreak
     payload = '\n'.join([json.dumps(d) for d in docs])
     params = {'collection': coll_name, 'on_duplicate': 'update'}
-    print('Requesting re_api', url, payload, params)
     resp = requests.put(
         url,
         data=payload,

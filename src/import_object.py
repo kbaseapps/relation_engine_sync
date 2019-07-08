@@ -6,7 +6,7 @@ wsfull_object (unversioned)
     _key: wsid/objid
 """
 from src.utils.re_client import save
-from src.utils.formatting import ts_to_epoch
+from src.utils.formatting import ts_to_epoch, get_method_key_from_prov
 
 
 def import_object(obj_info):
@@ -26,9 +26,13 @@ def import_object(obj_info):
     obj_ver_key = f'{obj_key}:{obj_ver}'
     _save_obj_version(obj_ver_key, wsid, objid, obj_ver, info_tup)
     _save_copy_edge(obj_ver_key, obj_info)
-    # TODO edge wsfull_latest_version_of, wsfull_version_of
-    # TODO edge wsfull_ws_contains_obj
+    _save_obj_ver_edge(obj_ver_key, obj_key)
+    _save_ws_contains_edge(obj_key, info_tup)
+    _save_created_with_method_edge(obj_ver_key, obj_info)
+    # TODO wsfull_instance_of_type
+    # TODO wsfull_owner_of
     # TODO edge wsfull_prov_descendant_of
+    # TODO edge wsfull_latest_version_of (check what obj is latest version)
 
 
 def _save_wsfull_object(key, wsid, objid):
@@ -87,5 +91,46 @@ def _save_copy_edge(obj_ver_key, obj_info):
     save('wsfull_copied_from', [{
         '_from': from_id,
         '_to': to_id
+    }])
+    print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_obj_ver_edge(obj_ver_key, obj_key):
+    """Save the wsfull_version_of edge."""
+    # The _from is a version of the _to
+    from_id = 'wsfull_object_version/' + obj_ver_key
+    to_id = 'wsfull_object/' + obj_key
+    print(f'Saving wsfull_version_of edge from {from_id} to {to_id}')
+    save('wsfull_version_of', [{
+        '_from': from_id,
+        '_to': to_id
+    }])
+    print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_ws_contains_edge(obj_key, info_tup):
+    """Save the wsfull_ws_contains_obj edge."""
+    from_id = 'wsfull_workspace/' + str(info_tup[6])
+    to_id = 'wsfull_object/' + obj_key
+    print(f'Saving wsfull_ws_contains_obj edge from {from_id} to {to_id}')
+    save('wsfull_ws_contains_obj', [{
+        '_from': from_id,
+        '_to': to_id
+    }])
+    print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_created_with_method_edge(obj_ver_key, obj_info):
+    """Save the wsfull_obj_created_with_method edge."""
+    prov = obj_info['provenance']
+    method_key = get_method_key_from_prov(prov)
+    from_id = 'wsfull_object_version/' + obj_ver_key
+    to_id = 'wsfull_method_version/' + method_key
+    params = prov[0].get('method_params', {})
+    print(f'Saving wsfull_obj_created_with_method edge from {from_id} to {to_id}')
+    save('wsfull_obj_created_with_method', [{
+        '_from': from_id,
+        '_to': to_id,
+        'method_params': params
     }])
     print(f'Successfully saved edge from {from_id} to {to_id}')
