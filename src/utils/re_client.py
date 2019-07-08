@@ -27,6 +27,31 @@ def get_doc(coll, key):
     return resp.json()
 
 
+def get_edge(coll, from_key, to_key):
+    """Fetch an edge by from and to keys."""
+    query = """
+    let ws_ids = @ws_ids
+    for v in @@coll
+        filter v._from == @from AND v._to == @to
+        limit 1
+        return v
+    """
+    print('query', f"let ws_ids = @ws_ids for v in @@coll filter v._from == {from_key} AND v._to == {to_key} limit 1 return v")  # noqa
+    resp = requests.post(
+        _CONFIG['re_api_url'] + '/api/v1/query_results',
+        data=json.dumps({
+            'query': query,
+            '@coll': coll,
+            'from': from_key,
+            'to': to_key
+        }),
+        headers={'Authorization': _CONFIG['re_token']}
+    )
+    if not resp.ok:
+        raise RuntimeError(resp.text)
+    return resp.json()
+
+
 def save(coll_name, docs):
     """
     Bulk-save documents to the relation engine database

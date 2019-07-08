@@ -25,6 +25,10 @@ def import_object(obj_info):
     obj_ver = info_tup[4]
     obj_ver_key = f'{obj_key}:{obj_ver}'
     _save_obj_version(obj_ver_key, wsid, objid, obj_ver, info_tup)
+    _save_copy_edge(obj_ver_key, obj_info)
+    # TODO edge wsfull_latest_version_of, wsfull_version_of
+    # TODO edge wsfull_ws_contains_obj
+    # TODO edge wsfull_prov_descendant_of
 
 
 def _save_wsfull_object(key, wsid, objid):
@@ -67,3 +71,21 @@ def _save_obj_version(key, wsid, objid, ver, info_tup):
         'deleted': False
     }])
     print("Successfully saved", key)
+
+
+def _save_copy_edge(obj_ver_key, obj_info):
+    """Save wsfull_copied_from document."""
+    copy_ref = obj_info.get('copied')
+    if not copy_ref:
+        print('Not a copied object.')
+        return
+    copied_key = copy_ref.replace('/', ':')
+    from_id = 'wsfull_object_version/' + obj_ver_key
+    to_id = 'wsfull_object_version/' + copied_key
+    print(f'Saving wsfull_copied_from edge from {from_id} to {to_id}')
+    # "The _from object is a copy of the _to object
+    save('wsfull_copied_from', [{
+        '_from': from_id,
+        '_to': to_id
+    }])
+    print(f'Successfully saved edge from {from_id} to {to_id}')
