@@ -27,10 +27,22 @@ class TestIntegration(unittest.TestCase):
     def test_basic(self):
         _produce({'evtype': 'NEW_VERSION', 'wsid': 41347, 'objid': 5, 'ver': 1})
         time.sleep(30)
-        doc = _wait_for_doc('wsfull_object', '41347:5')
-        self.assertEqual(doc['workspace_id'], 41347)
-        self.assertEqual(doc['object_id'], 5)
-        self.assertEqual(doc['deleted'], False)
+        obj_doc = _wait_for_doc('wsfull_object', '41347:5')
+        self.assertEqual(obj_doc['workspace_id'], 41347)
+        self.assertEqual(obj_doc['object_id'], 5)
+        self.assertEqual(obj_doc['deleted'], False)
+        hsh = "0e8d1a5090be7c4e9ccf6d37c09d0eab"
+        hash_doc = _wait_for_doc('wsfull_object_hash', hsh)
+        self.assertEqual(hash_doc['type'], 'MD5')
+        ver_doc = _wait_for_doc('wsfull_object_version', '41347:5:1')
+        self.assertEqual(ver_doc['workspace_id'], 41347)
+        self.assertEqual(ver_doc['object_id'], 5)
+        self.assertEqual(ver_doc['version'], 1)
+        self.assertEqual(ver_doc['name'], "Narrative.1553621013004")
+        self.assertEqual(ver_doc['hash'], "0e8d1a5090be7c4e9ccf6d37c09d0eab")
+        self.assertEqual(ver_doc['size'], 26938)
+        self.assertEqual(ver_doc['epoch'], 1554408999000)
+        self.assertEqual(ver_doc['deleted'], False)
 
 
 def _delivery_report(err, msg):
