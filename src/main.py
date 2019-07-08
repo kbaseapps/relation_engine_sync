@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 This is the entrypoint for running the app. A parent supervisor process that
 launches and monitors child processes and threads.
 """
@@ -15,7 +14,8 @@ _CONFIG = get_config()
 
 def main():
     """
-    Starts all subprocesses with healthchecks
+    Starts all subprocesses with ongoing healthchecks.
+    Number of subprocesses can be configured with the env var 'KBASE_SECURE_CONFIG_PARAM_NUM_CONSUMERS'
     """
     _wait_for_services()
     consumers = WorkerGroup(target=kafka_consumer.run, args=(), count=_CONFIG['num_consumers'])  # type: ignore
@@ -27,12 +27,11 @@ def main():
 
 def _wait_for_services():
     """Wait for dependency services such as the RE API."""
-    started = False
     timeout = int(time.time()) + 60
-    while not started:
+    while True:
         try:
             requests.get(_CONFIG['re_api_url']).raise_for_status()
-            started = True
+            break
         except Exception as err:
             print('Service not yet online', err)
             if int(time.time()) >= timeout:

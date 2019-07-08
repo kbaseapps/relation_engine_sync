@@ -1,21 +1,22 @@
 import os
+import functools
 
 # Prefix used by KBase when setting dynamic service env vars
 _ENV_PREFIX = "KBASE_SECURE_CONFIG_PARAM_"
 
 
+def _get_env(name, default):
+    """Get an env var with the kbase sdk prefix."""
+    return os.environ.get(_ENV_PREFIX + name, default)
+
+
+@functools.lru_cache(maxsize=2)
 def get_config():
     """Get configuration data from the environment."""
-    required_env_vars = [
-        _ENV_PREFIX + 'WS_TOKEN'
-    ]
-    for var in required_env_vars:
-        if not os.environ.get(var, '').strip():  # None, blank, or missing
-            raise RuntimeError("Missing required env var: " + var)
     # Get the url of the relation engine API
-    re_url = os.environ.get(_ENV_PREFIX + 'RE_URL', 'http://re_api:5000').strip('/')
+    re_url = _get_env('RE_URL', 'http://re_api:5000').strip('/')
     # Get the URL of the workspace API
-    ws_url = os.environ.get(_ENV_PREFIX + 'WORKSPACE_URL', 'http://workspace:5000').strip('/')
+    ws_url = _get_env('WORKSPACE_URL', 'http://workspace:5000').strip('/')
     # Get the authentication token for making requests to the workspace and relation engine
     ws_token = os.environ[_ENV_PREFIX + 'WS_TOKEN']
     return {
@@ -23,11 +24,11 @@ def get_config():
         're_api_url': re_url,
         'ws_token': ws_token,
         're_token': os.environ[_ENV_PREFIX + 'RE_TOKEN'],
-        'num_consumers': os.environ.get('NUM_CONSUMERS', 8),
-        'kafka_server': os.environ.get('KAFKA_SERVER', 'kafka'),
-        'kafka_clientgroup': os.environ.get('KAFKA_CLIENTGROUP', 're_sync'),
+        'num_consumers': _get_env('NUM_CONSUMERS', 8),
+        'kafka_server': _get_env('KAFKA_SERVER', 'kafka'),
+        'kafka_clientgroup': _get_env('KAFKA_CLIENTGROUP', 're_sync'),
         'kafka_topics': {
-            'workspace_events': os.environ.get('KAFKA_WORKSPACE_TOPIC', 'workspaceevents'),
-            're_admin_events': os.environ.get('RE_WS_ADMIN_TOPIC', 're_admin_events'),
+            'workspace_events': _get_env('KAFKA_WORKSPACE_TOPIC', 'workspaceevents'),
+            're_admin_events': _get_env('RE_WS_ADMIN_TOPIC', 're_admin_events'),
         }
     }
