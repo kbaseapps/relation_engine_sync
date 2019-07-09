@@ -120,7 +120,9 @@ def _save_ws_contains_edge(obj_key, info_tup):
 
 def _save_created_with_method_edge(obj_ver_key, obj_info):
     """Save the wsfull_obj_created_with_method edge."""
-    prov = obj_info['provenance']
+    prov = obj_info.get('provenance')
+    if not prov:
+        return
     method_key = get_method_key_from_prov(prov)
     from_id = 'wsfull_object_version/' + obj_ver_key
     to_id = 'wsfull_method_version/' + method_key
@@ -135,7 +137,9 @@ def _save_created_with_method_edge(obj_ver_key, obj_info):
 
 def _save_created_with_module_edge(obj_ver_key, obj_info):
     """Save the wsfull_obj_created_with_module edge."""
-    prov = obj_info['provenance']
+    prov = obj_info.get('provenance')
+    if not prov:
+        return
     module_key = get_module_key_from_prov(prov)
     from_id = 'wsfull_object_version/' + obj_ver_key
     to_id = 'wsfull_module_version/' + module_key
@@ -183,7 +187,9 @@ def _save_referral_edge(obj_ver_key, obj_info):
 
 def _save_prov_desc_edge(obj_ver_key, obj_info):
     """Save the wsfull_prov_descendant_of edge."""
-    prov = obj_info['provenance']
+    prov = obj_info.get('provenance')
+    if not prov:
+        return
     input_objs = prov[0].get('input_ws_objects', [])
     from_id = 'wsfull_object_version/' + obj_ver_key
     for upa in input_objs:
