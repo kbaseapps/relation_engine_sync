@@ -1,4 +1,4 @@
-# KBase - Kafka to Relation Engine sync service
+# KBase-to-Kafka to Relation Engine sync service
 
 This is a small service daemon that syncs from workspace updates (via Kafka) to the Relation Engine (the Arango database).
 
