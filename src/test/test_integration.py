@@ -76,7 +76,7 @@ class TestIntegration(unittest.TestCase):
             'wsfull_object_version/41347:5:1',  # from
             'wsfull_method_version/narrative:3.10.0:UNKNOWN'  # to
         )
-        self.assertEqual(created_with_edge['method_params'], {})
+        self.assertEqual(created_with_edge['method_params'], None)
         # Check for wsfull_obj_created_with_module edge
         module_edge = _wait_for_edge(
             'wsfull_obj_created_with_module',  # collection
