@@ -5,6 +5,7 @@ import requests
 from confluent_kafka import Producer
 from src.utils.config import get_config
 from src.utils.re_client import get_doc, get_edge
+from src.utils.logger import log
 
 _CONFIG = get_config()
 
@@ -13,16 +14,15 @@ class TestIntegration(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        print('token', _CONFIG['ws_token'])
         # Initialize specs
-        print('Initializing specs for the RE API..')
+        log('INFO', 'Initializing specs for the RE API..')
         resp = requests.put(
             _CONFIG['re_api_url'] + '/api/v1/specs',
             headers={'Authorization': _CONFIG['ws_token']},
             params={'init_collections': '1'}
         )
         resp.raise_for_status()
-        print('Done initializing RE specs.')
+        log('INFO', 'Done initializing RE specs.')
 
     def test_basic(self):
         """
@@ -134,9 +134,9 @@ def _produce(data, topic=_CONFIG['kafka_topics']['workspace_events']):
 
 def _delivery_report(err, msg):
     if err is not None:
-        print('Message delivery failed:', err)
+        log('ERROR', 'Message delivery failed:', err)
     else:
-        print('Message delivered to', msg.topic())
+        log('INFO', 'Message delivered to', msg.topic())
 
 
 def _wait_for_edge(coll, from_key, to_key):

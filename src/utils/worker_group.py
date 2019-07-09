@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from typing import List, Tuple, Callable
 from multiprocessing import Process
 
+from src.utils.logger import log
+
 
 @dataclass
 class WorkerGroup:
@@ -21,7 +23,7 @@ class WorkerGroup:
         """Find any dead workers and restart them."""
         for (idx, proc) in enumerate(self.workers):
             if not proc.is_alive():
-                print(f"Worker {proc} died, restarting..")
+                log('ERROR', f"Worker {proc} died, restarting..")
                 self.workers[idx] = _create_proc(self.target, self.args)
 
     def kill(self):

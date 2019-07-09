@@ -5,6 +5,7 @@ import json
 import traceback
 from confluent_kafka import Consumer, KafkaError
 
+from src.utils.logger import log
 from src.utils.config import get_config
 from src.utils.workspace_client import download_info
 from src.import_object import import_object
@@ -24,9 +25,9 @@ def run():
         'auto.offset.reset': 'earliest',
         'enable.auto.commit': True
     })
-    print(f"Subscribing to: {topics}")
-    print(f"Client group: {_CONFIG['kafka_clientgroup']}")
-    print(f"Kafka server: {_CONFIG['kafka_server']}")
+    log('INFO', f"Subscribing to: {topics}")
+    log('INFO', f"Client group: {_CONFIG['kafka_clientgroup']}")
+    log('INFO', f"Kafka server: {_CONFIG['kafka_server']}")
     consumer.subscribe(topics)
     while True:
         msg = consumer.poll(timeout=0.5)
@@ -34,21 +35,22 @@ def run():
             continue
         if msg.error():
             if msg.error().code() == KafkaError._PARTITION_EOF:
-                print('End of stream.')
+                log('INFO', 'End of stream.')
             else:
-                print(f"Kafka message error: {msg.error()}")
+                log('ERROR', f"Kafka message error: {msg.error()}")
             continue
         val = msg.value().decode('utf-8')
         try:
             msg = json.loads(val)
             _handle_msg(msg)
         except Exception as err:
-            print('=' * 80)
-            print(f"Error importing:\n{type(err)} - {err}")
-            print(msg)
-            print(err)
+            log('ERROR', '=' * 80)
+            log('ERROR', f"Error importing:\n{type(err)} - {err}")
+            log('ERROR', msg)
+            log('ERROR', err)
+            # Prints to stderr
             traceback.print_exc()
-            print('=' * 80)
+            log('ERROR', '=' * 80)
     consumer.close()
 
 
@@ -60,7 +62,7 @@ def _handle_msg(msg):
         raise RuntimeError(f'Invalid wsid in event: {wsid}')
     if not event_type:
         raise RuntimeError(f"Missing 'evtype' in event: {msg}")
-    print(f'Received {msg["evtype"]} for {wsid}/{msg.get("objid", "?")}')
+    log('INFO', f'Received {msg["evtype"]} for {wsid}/{msg.get("objid", "?")}')
     if event_type in ['IMPORT', 'NEW_VERSION', 'COPY_OBJECT', 'RENAME_OBJECT']:
         _import_obj(msg)
     elif event_type == 'IMPORT_NONEXISTENT':
@@ -72,19 +74,19 @@ def _handle_msg(msg):
     elif event_type in ['CLONE_WORKSPACE', 'IMPORT_WORKSPACE']:
         _import_ws(msg)
     elif event_type == 'SET_GLOBAL_PERMISSION':
-        print('set global permission for a workspace')
+        _set_global_perms(msg)
     else:
         raise RuntimeError(f"Unrecognized event {event_type}.")
 
 
 def _import_obj(msg):
-    print('Downloading obj')
+    log('INFO', 'Downloading obj')
     obj_info = download_info(msg['wsid'], msg['objid'], msg.get('ver'))
     import_object(obj_info)
 
 
 def _import_nonexistent(msg):
-    print('_import_nonexistent TODO')  # TODO
+    log('INFO', '_import_nonexistent TODO')  # TODO
     # upa = '/'.join([str(p) for p in [msg['wsid'], msg['objid'], msg['ver']]])
     # exists = check_doc_existence(upa)
     # if not exists:
@@ -93,19 +95,19 @@ def _import_nonexistent(msg):
 
 def _delete_obj(msg):
     """Handle an object deletion event (OBJECT_DELETE_STATE_CHANGE)"""
-    print('_delete_obj TODO')  # TODO
+    log('INFO', '_delete_obj TODO')  # TODO
 
 
 def _delete_ws(msg):
     """Handle a workspace deletion event (WORKSPACE_DELETE_STATE_CHANGE)."""
-    print('_delete_ws TODO')  # TODO
+    log('INFO', '_delete_ws TODO')  # TODO
 
 
 def _import_ws(msg):
     """Import all data for an entire workspace."""
-    print('_import_ws TODO')  # TODO
+    log('INFO', '_import_ws TODO')  # TODO
 
 
 def _set_global_perms(msg):
     """Set permissions for an entire workspace (SET_GLOBAL_PERMISSION)."""
-    print('_set_global_perms TODO')  # TODO
+    log('INFO', '_set_global_perms TODO')  # TODO

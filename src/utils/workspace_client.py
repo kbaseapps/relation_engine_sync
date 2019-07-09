@@ -13,7 +13,7 @@ def download_info(wsid, objid, ver=None):
     """
     Download object info from the workspace.
     """
-    ref = '/'.join([str(n) for n in [wsid, objid, ver]])
+    ref = '/'.join([str(n) for n in [wsid, objid, ver] if n])
     result = admin_req('getObjects', {
         'objects': [{'ref': ref}],
         'no_data': 1
