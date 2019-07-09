@@ -7,7 +7,7 @@
 # This is run when there are no arguments
 if [ $# -eq 0 ] ; then
   echo "Running in persistent server mode"
-  python -m src.main
+  python -u -m src.main
 
 # Test mode
 elif [ "${1}" = "test" ] ; then
