@@ -19,15 +19,15 @@ def run():
         _CONFIG['kafka_topics']['workspace_events'],
         _CONFIG['kafka_topics']['re_admin_events']
     ]
+    log('INFO', f"Subscribing to: {topics}")
+    log('INFO', f"Client group: {_CONFIG['kafka_clientgroup']}")
+    log('INFO', f"Kafka server: {_CONFIG['kafka_server']}")
     consumer = Consumer({
         'bootstrap.servers': _CONFIG['kafka_server'],
         'group.id': _CONFIG['kafka_clientgroup'],
         'auto.offset.reset': 'earliest',
         'enable.auto.commit': True
     })
-    log('INFO', f"Subscribing to: {topics}")
-    log('INFO', f"Client group: {_CONFIG['kafka_clientgroup']}")
-    log('INFO', f"Kafka server: {_CONFIG['kafka_server']}")
     consumer.subscribe(topics)
     while True:
         msg = consumer.poll(timeout=0.5)
