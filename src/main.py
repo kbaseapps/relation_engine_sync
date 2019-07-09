@@ -20,11 +20,9 @@ def main():
     """
     wait_for_services()
     consumers = WorkerGroup(target=kafka_consumer.run, args=(), count=_CONFIG['num_consumers'])  # type: ignore
-    log('INFO', f'started consumers: {consumers}')
     while True:
         # Monitor processes/threads and restart any that have crashed
         consumers.health_check()
-        log('INFO', f'consumers: {consumers}')
         time.sleep(5)
 
 
