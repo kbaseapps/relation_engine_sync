@@ -46,7 +46,6 @@ def _save_wsfull_object(key, wsid, objid):
         'object_id': objid,
         'deleted': False
     }])
-    print('Successfully saved', key)
 
 
 def _save_obj_hash(info_tup):
@@ -57,7 +56,6 @@ def _save_obj_hash(info_tup):
         '_key': obj_hash,
         'type': obj_hash_type
     }])
-    print('Successfully saved', obj_hash)
 
 
 def _save_obj_version(key, wsid, objid, ver, info_tup):
@@ -77,7 +75,6 @@ def _save_obj_version(key, wsid, objid, ver, info_tup):
         'epoch': epoch,
         'deleted': False
     }])
-    print("Successfully saved", key)
 
 
 def _save_copy_edge(obj_ver_key, obj_info):
@@ -95,7 +92,6 @@ def _save_copy_edge(obj_ver_key, obj_info):
         '_from': from_id,
         '_to': to_id
     }])
-    print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_obj_ver_edge(obj_ver_key, obj_key):
@@ -108,7 +104,6 @@ def _save_obj_ver_edge(obj_ver_key, obj_key):
         '_from': from_id,
         '_to': to_id
     }])
-    print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_ws_contains_edge(obj_key, info_tup):
@@ -120,7 +115,6 @@ def _save_ws_contains_edge(obj_key, info_tup):
         '_from': from_id,
         '_to': to_id
     }])
-    print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_created_with_method_edge(obj_ver_key, obj_info):
@@ -136,7 +130,6 @@ def _save_created_with_method_edge(obj_ver_key, obj_info):
         '_to': to_id,
         'method_params': params
     }])
-    print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_created_with_module_edge(obj_ver_key, obj_info):
@@ -150,7 +143,6 @@ def _save_created_with_module_edge(obj_ver_key, obj_info):
         '_from': from_id,
         '_to': to_id
     }])
-    print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_inst_of_type_edge(obj_ver_key, info_tup):
@@ -162,7 +154,6 @@ def _save_inst_of_type_edge(obj_ver_key, info_tup):
         '_from': from_id,
         '_to': to_id
     }])
-    print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_owner_edge(obj_ver_key, info_tup):
@@ -175,7 +166,6 @@ def _save_owner_edge(obj_ver_key, info_tup):
         '_from': from_id,
         '_to': to_id
     }])
-    print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_referral_edge(obj_ver_key, obj_info):
@@ -188,7 +178,6 @@ def _save_referral_edge(obj_ver_key, obj_info):
             '_from': from_id,
             '_to': to_id
         }])
-        print(f'Successfully saved edge from {from_id} to {to_id}')
 
 
 def _save_prov_desc_edge(obj_ver_key, obj_info):
@@ -203,4 +192,3 @@ def _save_prov_desc_edge(obj_ver_key, obj_info):
             '_from': from_id,
             '_to': to_id
         }])
-        print(f'Successfully saved edge from {from_id} to {to_id}')
