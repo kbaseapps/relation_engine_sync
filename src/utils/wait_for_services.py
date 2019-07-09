@@ -11,7 +11,7 @@ def wait_for_services():
     timeout = int(time.time()) + 60
     while True:
         try:
-            requests.get(_CONFIG['re_api_url']).raise_for_status()
+            requests.get(_CONFIG['re_api_url'] + '/').raise_for_status()
             break
         except Exception as err:
             print('Service not yet online', err)
