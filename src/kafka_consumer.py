@@ -42,6 +42,7 @@ def run():
         val = msg.value().decode('utf-8')
         try:
             msg = json.loads(val)
+            log('INFO', f'New message: {msg}')
             _handle_msg(msg)
         except Exception as err:
             log('ERROR', '=' * 80)
