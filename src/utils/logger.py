@@ -3,6 +3,6 @@ import sys
 
 def log(level, msg):
     if level == 'ERROR':
-        sys.stderr.write(level + '\t' + msg + '\n')
+        sys.stderr.write(str(level) + '\t' + str(msg) + '\n')
     else:
-        sys.stdout.write(level + '\t' + msg + '\n')
+        sys.stdout.write(str(level) + '\t' + str(msg) + '\n')
