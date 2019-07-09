@@ -124,7 +124,8 @@ def _save_created_with_method_edge(obj_ver_key, obj_info):
     method_key = get_method_key_from_prov(prov)
     from_id = 'wsfull_object_version/' + obj_ver_key
     to_id = 'wsfull_method_version/' + method_key
-    params = prov[0].get('method_params', {})
+    meth_params = prov[0].get('method_params')
+    params = meth_params[0] if meth_params else None
     log('INFO', f'Saving wsfull_obj_created_with_method edge from {from_id} to {to_id}')
     save('wsfull_obj_created_with_method', [{
         '_from': from_id,

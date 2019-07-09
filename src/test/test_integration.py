@@ -134,9 +134,9 @@ def _produce(data, topic=_CONFIG['kafka_topics']['workspace_events']):
 
 def _delivery_report(err, msg):
     if err is not None:
-        log('ERROR', 'Message delivery failed:', err)
+        log('ERROR', f'Message delivery failed: {err}')
     else:
-        log('INFO', 'Message delivered to', msg.topic())
+        log('INFO', f'Message delivered to {msg.topic()}')
 
 
 def _wait_for_edge(coll, from_key, to_key):
