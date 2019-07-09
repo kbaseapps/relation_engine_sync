@@ -27,7 +27,7 @@ def get_config():
         're_token': re_token,
         'num_consumers': _get_env('NUM_CONSUMERS', 8),
         'kafka_server': _get_env('KAFKA_SERVER', 'kafka'),
-        'kafka_clientgroup': _get_env('KAFKA_CLIENTGROUP', 're_sync'),
+        'kafka_clientgroup': _get_env('KAFKA_CLIENTGROUP', 'releng_sync'),
         'kafka_topics': {
             'workspace_events': _get_env('KAFKA_WORKSPACE_TOPIC', 'workspaceevents'),
             're_admin_events': _get_env('RE_WS_ADMIN_TOPIC', 're_admin_events'),
