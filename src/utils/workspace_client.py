@@ -9,7 +9,7 @@ from src.utils.config import get_config
 _CONFIG = get_config()
 
 
-def download_info(wsid, objid, ver):
+def download_info(wsid, objid, ver=None):
     """
     Download object info from the workspace.
     """

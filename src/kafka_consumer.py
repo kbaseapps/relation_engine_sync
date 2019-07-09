@@ -44,7 +44,7 @@ def run():
             _handle_msg(msg)
         except Exception as err:
             print('=' * 80)
-            print(f"Error indexing:\n{type(err)} - {err}")
+            print(f"Error importing:\n{type(err)} - {err}")
             print(msg)
             print(err)
             traceback.print_exc()
@@ -66,11 +66,11 @@ def _handle_msg(msg):
     elif event_type == 'IMPORT_NONEXISTENT':
         _import_nonexistent(msg)
     elif event_type == 'OBJECT_DELETE_STATE_CHANGE':
-        print('delete obj')
+        _delete_obj(msg)
     elif event_type == 'WORKSPACE_DELETE_STATE_CHANGE':
-        print('delete obj for all in workspace')
+        _delete_ws(msg)
     elif event_type in ['CLONE_WORKSPACE', 'IMPORT_WORKSPACE']:
-        print('import whole workspace')
+        _import_ws(msg)
     elif event_type == 'SET_GLOBAL_PERMISSION':
         print('set global permission for a workspace')
     else:
@@ -84,8 +84,28 @@ def _import_obj(msg):
 
 
 def _import_nonexistent(msg):
-    print('_import_nonexistent TODO')
+    print('_import_nonexistent TODO')  # TODO
     # upa = '/'.join([str(p) for p in [msg['wsid'], msg['objid'], msg['ver']]])
     # exists = check_doc_existence(upa)
     # if not exists:
     #     _import_obj(msg)
+
+
+def _delete_obj(msg):
+    """Handle an object deletion event (OBJECT_DELETE_STATE_CHANGE)"""
+    print('_delete_obj TODO')  # TODO
+
+
+def _delete_ws(msg):
+    """Handle a workspace deletion event (WORKSPACE_DELETE_STATE_CHANGE)."""
+    print('_delete_ws TODO')  # TODO
+
+
+def _import_ws(msg):
+    """Import all data for an entire workspace."""
+    print('_import_ws TODO')  # TODO
+
+
+def _set_global_perms(msg):
+    """Set permissions for an entire workspace (SET_GLOBAL_PERMISSION)."""
+    print('_set_global_perms TODO')  # TODO

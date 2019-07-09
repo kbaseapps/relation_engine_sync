@@ -6,13 +6,15 @@ wsfull_object (unversioned)
     _key: wsid/objid
 """
 from src.utils.re_client import save
-from src.utils.formatting import ts_to_epoch, get_method_key_from_prov
+from src.utils.formatting import ts_to_epoch, get_method_key_from_prov, get_module_key_from_prov
 
 
 def import_object(obj_info):
     """
     Given a workspace object downloaded to disk, convert it to a wsfull arangodb document and import it.
+    `is_new_version` indicates whether this object is a brand new (latest as of runtime) version of an object.
     """
+    # TODO handle the wsfull_latest_version_of edge -- some tricky considerations here
     # Save the wsfull_object document
     info_tup = obj_info['info']
     wsid = info_tup[6]
@@ -29,10 +31,11 @@ def import_object(obj_info):
     _save_obj_ver_edge(obj_ver_key, obj_key)
     _save_ws_contains_edge(obj_key, info_tup)
     _save_created_with_method_edge(obj_ver_key, obj_info)
-    # TODO wsfull_instance_of_type
-    # TODO wsfull_owner_of
-    # TODO edge wsfull_prov_descendant_of
-    # TODO edge wsfull_latest_version_of (check what obj is latest version)
+    _save_created_with_module_edge(obj_ver_key, obj_info)
+    _save_inst_of_type_edge(obj_ver_key, info_tup)
+    _save_owner_edge(obj_ver_key, info_tup)
+    _save_referral_edge(obj_ver_key, obj_info)
+    _save_prov_desc_edge(obj_ver_key, obj_info)
 
 
 def _save_wsfull_object(key, wsid, objid):
@@ -134,3 +137,70 @@ def _save_created_with_method_edge(obj_ver_key, obj_info):
         'method_params': params
     }])
     print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_created_with_module_edge(obj_ver_key, obj_info):
+    """Save the wsfull_obj_created_with_module edge."""
+    prov = obj_info['provenance']
+    module_key = get_module_key_from_prov(prov)
+    from_id = 'wsfull_object_version/' + obj_ver_key
+    to_id = 'wsfull_module_version/' + module_key
+    print(f'Saving wsfull_obj_created_with_module edge from {from_id} to {to_id}')
+    save('wsfull_obj_created_with_module', [{
+        '_from': from_id,
+        '_to': to_id
+    }])
+    print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_inst_of_type_edge(obj_ver_key, info_tup):
+    """Save the wsfull_obj_instance_of_type of edge."""
+    from_id = 'wsfull_object_version/' + obj_ver_key
+    to_id = 'wsfull_type_version/' + info_tup[2]
+    print(f'Saving wsfull_obj_instance_of_type edge from {from_id} to {to_id}')
+    save('wsfull_obj_instance_of_type', [{
+        '_from': from_id,
+        '_to': to_id
+    }])
+    print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_owner_edge(obj_ver_key, info_tup):
+    """Save the wsfull_owner_of edge."""
+    username = info_tup[5]
+    from_id = 'wsfull_user/' + username
+    to_id = 'wsfull_object_version/' + obj_ver_key
+    print(f'Saving wsfull_owner_of edge from {from_id} to {to_id}')
+    save('wsfull_owner_of', [{
+        '_from': from_id,
+        '_to': to_id
+    }])
+    print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_referral_edge(obj_ver_key, obj_info):
+    """Save the wsfull_refers_to edge."""
+    from_id = 'wsfull_object_version/' + obj_ver_key
+    for upa in obj_info.get('refs', []):
+        to_id = 'wsfull_object_version/' + upa.replace('/', ':')
+        print(f'Saving wsfull_refers_to edge from {from_id} to {to_id}')
+        save('wsfull_refers_to', [{
+            '_from': from_id,
+            '_to': to_id
+        }])
+        print(f'Successfully saved edge from {from_id} to {to_id}')
+
+
+def _save_prov_desc_edge(obj_ver_key, obj_info):
+    """Save the wsfull_prov_descendant_of edge."""
+    prov = obj_info['provenance']
+    input_objs = prov[0].get('input_ws_objects', [])
+    from_id = 'wsfull_object_version/' + obj_ver_key
+    for upa in input_objs:
+        to_id = 'wsfull_object_version/' + upa.replace('/', ':')
+        print(f'Saving wsfull_prov_descendant_of edge from {from_id} to {to_id}')
+        save('wsfull_prov_descendant_of', [{
+            '_from': from_id,
+            '_to': to_id
+        }])
+        print(f'Successfully saved edge from {from_id} to {to_id}')

@@ -73,10 +73,57 @@ class TestIntegration(unittest.TestCase):
         # Check for wsfull_obj_created_with_method edge
         created_with_edge = _wait_for_edge(
             'wsfull_obj_created_with_method',  # collection
-            'wsfull_object_version/41347:5:1',
-            'wsfull_method_version/narrative:3.10.0:UNKNOWN'
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_method_version/narrative:3.10.0:UNKNOWN'  # to
         )
         self.assertEqual(created_with_edge['method_params'], {})
+        # Check for wsfull_obj_created_with_module edge
+        module_edge = _wait_for_edge(
+            'wsfull_obj_created_with_module',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_module_version/narrative:3.10.0'  # to
+        )
+        self.assertTrue(module_edge)
+        # Check for wsfull_obj_instance_of_type
+        type_edge = _wait_for_edge(
+            'wsfull_obj_instance_of_type',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_type_version/KBaseNarrative.Narrative-4.0'  # to
+        )
+        self.assertTrue(type_edge)
+        # Check for the wsfull_owner_of edge
+        owner_edge = _wait_for_edge(
+            'wsfull_owner_of',  # collection
+            'wsfull_user/username',  # from
+            'wsfull_object_version/41347:5:1',  # to
+        )
+        self.assertTrue(owner_edge)
+        # Check for the wsfull_refers_to edges
+        referral_edge1 = _wait_for_edge(
+            'wsfull_refers_to',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_object_version/1:1:1',  # to
+        )
+        self.assertTrue(referral_edge1)
+        referral_edge2 = _wait_for_edge(
+            'wsfull_refers_to',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_object_version/2:2:2',  # to
+        )
+        self.assertTrue(referral_edge2)
+        # Check for the wsfull_prov_descendant_of edges
+        prov_edge1 = _wait_for_edge(
+            'wsfull_prov_descendant_of',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_object_version/1:1:1',  # to
+        )
+        self.assertTrue(prov_edge1)
+        prov_edge2 = _wait_for_edge(
+            'wsfull_prov_descendant_of',  # collection
+            'wsfull_object_version/41347:5:1',  # from
+            'wsfull_object_version/2:2:2',  # to
+        )
+        self.assertTrue(prov_edge2)
 
 
 def _produce(data, topic=_CONFIG['kafka_topics']['workspace_events']):
