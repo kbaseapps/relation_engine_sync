@@ -31,8 +31,10 @@ def import_object(obj_info):
     _save_copy_edge(obj_ver_key, obj_info)
     _save_obj_ver_edge(obj_ver_key, obj_key)
     _save_ws_contains_edge(obj_key, info_tup)
-    _save_created_with_method_edge(obj_ver_key, obj_info)
-    _save_created_with_module_edge(obj_ver_key, obj_info)
+    prov = obj_info.get('provenance')
+    if prov and prov[0] and prov[0].get('service'):
+        _save_created_with_method_edge(obj_ver_key, prov)
+        _save_created_with_module_edge(obj_ver_key, prov)
     _save_inst_of_type_edge(obj_ver_key, info_tup)
     _save_owner_edge(obj_ver_key, info_tup)
     _save_referral_edge(obj_ver_key, obj_info)
@@ -118,11 +120,8 @@ def _save_ws_contains_edge(obj_key, info_tup):
     }])
 
 
-def _save_created_with_method_edge(obj_ver_key, obj_info):
+def _save_created_with_method_edge(obj_ver_key, prov):
     """Save the wsfull_obj_created_with_method edge."""
-    prov = obj_info.get('provenance')
-    if not prov:
-        return
     method_key = get_method_key_from_prov(prov)
     from_id = 'wsfull_object_version/' + obj_ver_key
     to_id = 'wsfull_method_version/' + method_key
@@ -135,11 +134,8 @@ def _save_created_with_method_edge(obj_ver_key, obj_info):
     }])
 
 
-def _save_created_with_module_edge(obj_ver_key, obj_info):
+def _save_created_with_module_edge(obj_ver_key, prov):
     """Save the wsfull_obj_created_with_module edge."""
-    prov = obj_info.get('provenance')
-    if not prov:
-        return
     module_key = get_module_key_from_prov(prov)
     from_id = 'wsfull_object_version/' + obj_ver_key
     to_id = 'wsfull_module_version/' + module_key
