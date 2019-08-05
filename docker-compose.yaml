@@ -52,7 +52,7 @@ services:
 
   # Relation Engine API
   re_api:
-    image: kbase/relation_engine_api:latest
+    image: kbase/relation_engine_api:develop
     ports:
       - "127.0.0.1:5000:5000"
     depends_on:
