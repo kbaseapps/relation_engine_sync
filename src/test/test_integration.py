@@ -124,13 +124,8 @@ class TestIntegration(unittest.TestCase):
         )
         self.assertTrue(prov_edge2)
 
-    def test_import_nonexistent(self):
-        """Test an IMPORT_NONEXISTENT event where the doc does not exist."""
-        pass  # TODO
-        # _produce({'evtype': 'NEW_VERSION', 'wsid': 41347, 'objid': 5, 'ver': 1})
-
     def test_import_nonexistent_existing(self):
-        """Test an IMPORT_NONEXISTENT event where the doc exists."""
+        """Test IMPORT_NONEXISTENT events."""
         _produce({'evtype': 'IMPORT_NONEXISTENT', 'wsid': 41347, 'objid': 6, 'ver': 1})
         admin_topic = _CONFIG['kafka_topics']['re_admin_events']
         obj_doc1 = _wait_for_doc('wsfull_object', '41347:6')
