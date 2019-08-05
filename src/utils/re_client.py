@@ -16,7 +16,7 @@ def get_doc(coll, key):
     resp = requests.post(
         _CONFIG['re_api_url'] + '/api/v1/query_results',
         data=json.dumps({
-            'query': "let ws_ids = @ws_ids for v in @@coll filter v._key == @key limit 1 return v",
+            'query': "for v in @@coll filter v._key == @key limit 1 return v",
             '@coll': coll,
             'key': key
         }),
@@ -27,10 +27,29 @@ def get_doc(coll, key):
     return resp.json()
 
 
+def check_doc_existence(_id):
+    """Check if a doc exists in RE already by full ID."""
+    (coll, key) = _id.split('/')
+    query = """
+    for d in @@coll filter d._key == @key limit 1 return 1
+    """
+    resp = requests.post(
+        _CONFIG['re_api_url'] + '/api/v1/query_results',
+        data=json.dumps({
+            'query': query,
+            '@coll': coll,
+            'key': key
+        }),
+        headers={'Authorization': _CONFIG['re_token']}
+    )
+    if not resp.ok:
+        raise RuntimeError(resp.text)
+    return resp.json()['count'] > 0
+
+
 def get_edge(coll, from_key, to_key):
     """Fetch an edge by from and to keys."""
     query = """
-    let ws_ids = @ws_ids
     for v in @@coll
         filter v._from == @from AND v._to == @to
         limit 1
@@ -59,7 +78,7 @@ def save(coll_name, docs):
         coll_name - collection name
         docs - list of dicts to save into the collection as json documents
     """
-    url = _CONFIG['re_api_url'] + '/api/documents'
+    url = _CONFIG['re_api_url'] + '/api/v1/documents'
     # convert the docs into a string, where each obj is separated by a linebreak
     payload = '\n'.join([json.dumps(d) for d in docs])
     params = {'collection': coll_name, 'on_duplicate': 'update'}
@@ -78,7 +97,7 @@ def import_file(file_path, fd):
     """
     Import a file full of json documents, separated by linebreaks.
     """
-    url = urljoin(_CONFIG['re_api_url'] + '/', 'api/documents')
+    url = urljoin(_CONFIG['re_api_url'] + '/', 'api/v1/documents')
     # convert the docs into a string, where each obj is separated by a linebreak
     coll_name = os.path.basename(file_path).split('.')[0]
     params = {'collection': coll_name, 'on_duplicate': 'update'}

@@ -8,6 +8,7 @@ from confluent_kafka import Consumer, KafkaError
 from src.utils.logger import log
 from src.utils.config import get_config
 from src.utils.workspace_client import download_info
+from src.utils.re_client import check_doc_existence
 from src.import_object import import_object
 
 _CONFIG = get_config()
@@ -87,28 +88,34 @@ def _import_obj(msg):
 
 
 def _import_nonexistent(msg):
-    log('INFO', '_import_nonexistent TODO')  # TODO
-    # upa = '/'.join([str(p) for p in [msg['wsid'], msg['objid'], msg['ver']]])
-    # exists = check_doc_existence(upa)
-    # if not exists:
-    #     _import_obj(msg)
+    """Import an object only if it does not exist in RE already."""
+    upa = ':'.join([str(p) for p in [msg['wsid'], msg['objid'], msg['ver']]])
+    log('INFO', f'_import_nonexistent on {upa}')  # TODO
+    _id = 'wsfull_object_version/' + upa
+    exists = check_doc_existence(_id)
+    if not exists:
+        _import_obj(msg)
 
 
 def _delete_obj(msg):
     """Handle an object deletion event (OBJECT_DELETE_STATE_CHANGE)"""
     log('INFO', '_delete_obj TODO')  # TODO
+    raise NotImplementedError()
 
 
 def _delete_ws(msg):
     """Handle a workspace deletion event (WORKSPACE_DELETE_STATE_CHANGE)."""
     log('INFO', '_delete_ws TODO')  # TODO
+    raise NotImplementedError()
 
 
 def _import_ws(msg):
     """Import all data for an entire workspace."""
     log('INFO', '_import_ws TODO')  # TODO
+    raise NotImplementedError()
 
 
 def _set_global_perms(msg):
     """Set permissions for an entire workspace (SET_GLOBAL_PERMISSION)."""
     log('INFO', '_set_global_perms TODO')  # TODO
+    raise NotImplementedError()

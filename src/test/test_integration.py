@@ -24,12 +24,11 @@ class TestIntegration(unittest.TestCase):
         resp.raise_for_status()
         log('INFO', 'Done initializing RE specs.')
 
-    def test_basic(self):
+    def test_new_version_event(self):
         """
         Test a full successful object import into arango, checking for all associated documents.
         """
         _produce({'evtype': 'NEW_VERSION', 'wsid': 41347, 'objid': 5, 'ver': 1})
-        time.sleep(30)
         # Check for wsfull_object
         obj_doc = _wait_for_doc('wsfull_object', '41347:5')
         self.assertEqual(obj_doc['workspace_id'], 41347)
@@ -124,6 +123,21 @@ class TestIntegration(unittest.TestCase):
             'wsfull_object_version/2:2:2',  # to
         )
         self.assertTrue(prov_edge2)
+
+    def test_import_nonexistent(self):
+        """Test an IMPORT_NONEXISTENT event where the doc does not exist."""
+        pass  # TODO
+        # _produce({'evtype': 'NEW_VERSION', 'wsid': 41347, 'objid': 5, 'ver': 1})
+
+    def test_import_nonexistent_existing(self):
+        """Test an IMPORT_NONEXISTENT event where the doc exists."""
+        _produce({'evtype': 'IMPORT_NONEXISTENT', 'wsid': 41347, 'objid': 6, 'ver': 1})
+        admin_topic = _CONFIG['kafka_topics']['re_admin_events']
+        obj_doc1 = _wait_for_doc('wsfull_object', '41347:6')
+        self.assertEqual(obj_doc1['object_id'], 6)
+        _produce({'evtype': 'IMPORT_NONEXISTENT', 'wsid': 41347, 'objid': 5, 'ver': 1}, admin_topic)
+        obj_doc2 = _wait_for_doc('wsfull_object', '41347:6')
+        self.assertEqual(obj_doc1['_rev'], obj_doc2['_rev'])
 
 
 def _produce(data, topic=_CONFIG['kafka_topics']['workspace_events']):
